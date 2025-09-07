@@ -187,14 +187,62 @@ testsCasilleros =
 
 testsRecr :: Test
 testsRecr =
-  test
-    [ completar
+  let recProc = recrExpr
+                  -- fConst
+                  (\ v expr -> show v)
+                  -- fRange
+                  (\ s e expr -> show s ++ " ~ " ++ show e)
+                  -- fSuma
+                  (\ l r expr -> "(" ++ l ++ " + " ++ r ++ ")")
+                  -- fResta
+                  (\ l r expr -> "(" ++ l ++ " - " ++ r ++ ")")
+                  -- fMult
+                  (\ l r expr -> "(" ++ l ++ " * " ++ r ++ ")")
+                  -- fDiv
+                  (\ l r expr -> "(" ++ l ++ " / " ++ r ++ ")")
+    in test
+    [ 
+      -- usamos recursion primitiva para convertir una Expr a string
+      recProc (Const 1.0) ~?= "1.0",
+      recProc (Rango (-1.7) (-0.5)) ~?= "-1.7 ~ -0.5",
+      recProc (Suma (Const 1.0) (Const 2.0)) ~?= "(1.0 + 2.0)",
+      recProc (Div (Const 1.0) (Const 2.0)) ~?= "(1.0 / 2.0)",
+      recProc (Suma (Const 1.0) (Mult (Const 2.0) (Const 3.0))) ~?= "(1.0 + (2.0 * 3.0))",
+      recProc (Suma (Suma (Const 1.0) (Const 2.0)) (Const 3.0)) ~?= "((1.0 + 2.0) + 3.0)",
+      recProc (Suma (Const 1.0) (Suma (Const 2.0) (Const 3.0))) ~?= "(1.0 + (2.0 + 3.0))",
+      recProc (Suma (Suma (Const 1.0) (Rango 2.0 3.0)) (Const 4.0)) ~?= "((1.0 + 2.0 ~ 3.0) + 4.0)",
+      recProc (Resta (Resta (Resta (Const 1.0) (Const 2.0)) (Const 3.0)) (Const 4.0)) ~?= "(((1.0 - 2.0) - 3.0) - 4.0)",
+      recProc (Resta (Mult (Resta (Const 1.0) (Const 2.0)) (Const 3.0)) (Const 4.0)) ~?= "(((1.0 - 2.0) * 3.0) - 4.0)"
     ]
 
 testsFold :: Test
 testsFold =
-  test
-    [ completar
+  let foldProc = foldExpr
+                  -- fConst
+                  (\ v -> show v)
+                  -- fRange
+                  (\ s e -> show s ++ " ~ " ++ show e)
+                  -- fSuma
+                  (\ l r -> "(" ++ l ++ " + " ++ r ++ ")")
+                  -- fResta
+                  (\ l r -> "(" ++ l ++ " - " ++ r ++ ")")
+                  -- fMult
+                  (\ l r -> "(" ++ l ++ " * " ++ r ++ ")")
+                  -- fDiv
+                  (\ l r -> "(" ++ l ++ " / " ++ r ++ ")")
+    in test
+    [ 
+      -- usamos recursion estructural para convertir una Expr a string
+      foldProc (Const 1.0) ~?= "1.0",
+      foldProc (Rango (-1.7) (-0.5)) ~?= "-1.7 ~ -0.5",
+      foldProc (Suma (Const 1.0) (Const 2.0)) ~?= "(1.0 + 2.0)",
+      foldProc (Div (Const 1.0) (Const 2.0)) ~?= "(1.0 / 2.0)",
+      foldProc (Suma (Const 1.0) (Mult (Const 2.0) (Const 3.0))) ~?= "(1.0 + (2.0 * 3.0))",
+      foldProc (Suma (Suma (Const 1.0) (Const 2.0)) (Const 3.0)) ~?= "((1.0 + 2.0) + 3.0)",
+      foldProc (Suma (Const 1.0) (Suma (Const 2.0) (Const 3.0))) ~?= "(1.0 + (2.0 + 3.0))",
+      foldProc (Suma (Suma (Const 1.0) (Rango 2.0 3.0)) (Const 4.0)) ~?= "((1.0 + 2.0 ~ 3.0) + 4.0)",
+      foldProc (Resta (Resta (Resta (Const 1.0) (Const 2.0)) (Const 3.0)) (Const 4.0)) ~?= "(((1.0 - 2.0) - 3.0) - 4.0)",
+      foldProc (Resta (Mult (Resta (Const 1.0) (Const 2.0)) (Const 3.0)) (Const 4.0)) ~?= "(((1.0 - 2.0) * 3.0) - 4.0)"
     ]
 
 testsEval :: Test

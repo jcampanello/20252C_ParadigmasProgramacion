@@ -51,7 +51,7 @@ foldl f ac (x : xs) = foldl f (f ac x) xs
 recrExpr :: (Float -> Expr -> a) -> (Float -> Float -> Expr -> a) -> (a -> a -> Expr -> a) -> (a -> a -> Expr -> a) -> (a -> a -> Expr -> a) -> (a -> a -> Expr -> a) -> Expr -> a
 recrExpr fConst fRango fSuma fResta fMult fDiv expr = case expr of
         Const f             -> fConst f expr
-        Rango s e           -> fRango e e expr
+        Rango s e           -> fRango s e expr
         Suma expr1 expr2    -> fSuma  (recurse expr1) (recurse expr2) expr
         Resta expr1 expr2   -> fResta (recurse expr1) (recurse expr2) expr
         Mult expr1 expr2    -> fMult  (recurse expr1) (recurse expr2) expr
@@ -69,7 +69,7 @@ recrExpr fConst fRango fSuma fResta fMult fDiv expr = case expr of
 foldExpr :: (Float -> a) -> (Float -> Float -> a) -> (a -> a -> a) -> (a -> a -> a) -> (a -> a -> a) -> (a -> a -> a) -> Expr -> a
 foldExpr fConst fRango fSuma fResta fMult fDiv expr = case expr of
         Const f             -> fConst f
-        Rango s e           -> fRango e e
+        Rango s e           -> fRango s e
         Suma expr1 expr2    -> fSuma  (recurse expr1) (recurse expr2)
         Resta expr1 expr2   -> fResta (recurse expr1) (recurse expr2)
         Mult expr1 expr2    -> fMult  (recurse expr1) (recurse expr2)
