@@ -41,7 +41,7 @@ testsAlinearDerecha =
   test
     [ alinearDerecha 6 "hola" ~?= "  hola",
       alinearDerecha 10 "incierticalc" ~?= "incierticalc",
-      -- AGREGADO: rellena string vacio
+      -- AGREGADO: rellena string vacío
       alinearDerecha 2 "" ~?= "  ",
       -- AGREGADO: no tiene problema sin el input son blancos
       alinearDerecha 2 "   " ~?= "   "
@@ -55,10 +55,10 @@ testsActualizarElem =
       -- AGREGADO: actualizar sin efecto (+0, id)
       actualizarElem 1 (+ 0) [1, 2, 3] ~?= [1, 2, 3],
       actualizarElem 1 id [1, 2, 3] ~?= [1, 2, 3],
-      -- AGREGADO: fuera de indice (lower/upper)
+      -- AGREGADO: fuera de índice (lower/upper)
       actualizarElem (-1) (+ 10) [1, 2, 3] ~?= [1, 2, 3],
       actualizarElem 16 (+ 10) [1, 2, 3] ~?= [1, 2, 3],
-      -- AGREGADO: lista vacia
+      -- AGREGADO: lista vacía
       actualizarElem 3 (+ 1) [] ~?= []
     ]
 
@@ -142,11 +142,11 @@ testsHistograma :: Test
 testsHistograma =
   test
     [ histograma 4 (1, 5) [1, 2, 3] ~?= agregar 3 (agregar 2 (agregar 1 (vacio 4 (1, 5)))),
-      -- AGREGADO: histograma vacio
+      -- AGREGADO: histograma vacío
       histograma 4 (1, 5) [] ~?= vacio 4 (1, 5),
-      -- AGREGADO: histograma con menos infinito
+      -- AGREGADO: histograma con -infinito
       histograma 4 (1, 5) [infinitoNegativo] ~?= agregar infinitoNegativo (vacio 4 (1, 5)),
-      -- AGREGADO: histograma con mas infinito
+      -- AGREGADO: histograma con +infinito
       histograma 4 (1, 5) [infinitoPositivo] ~?= agregar infinitoPositivo (vacio 4 (1, 5))
     ]
 
@@ -175,7 +175,7 @@ testsCasilleros =
               Casillero 4.0 6.0 0 0.0,
               Casillero 6.0 infinitoPositivo 2 25.0
             ],
-      -- AGREGADO: casilleros de histograma vacio
+      -- AGREGADO: casilleros de histograma vacío
       casilleros (histograma 3 (0, 6) [])
         ~?= [ Casillero infinitoNegativo 0.0 0 0.0,
               Casillero 0.0 2.0 0 0.0,

@@ -34,7 +34,7 @@ data Histograma = Histograma Float Float [Int]
 -- valores en el rango y 2 casilleros adicionales para los valores fuera del rango.
 -- Requiere que @l < u@ y @n >= 1@.
 {-
-    IDEA:   lo que hay que hacer es simple. Basicamente usar el constructor haciendo la cuenta del
+    IDEA:   lo que hay que hacer es simple. Básicamente usar el constructor haciendo la cuenta del
             "ancho" de cada "balde" y crear ademas la lista de valores, que es una lista con n+2 ceros
             (n siendo la cantidad de baldes y 2 adicionales para el +/- infinito)
 -}
@@ -44,11 +44,11 @@ vacio n (l, u) = Histograma l  ((u - l) / fromIntegral n)  (replicate (n+2) 0)
 
 -- | Agrega un valor al histograma.
 {-
-    IDEA:   identificar el "balde" en el cual deberia caer el valor (-Inf,0..n,+Inf) y utilizar la funcion
-            actualizarElem, pasando (+1) como funcion de actualizacion.
-            Para esto, se utiliza una funcion local bucketIndex, que identifica el numero de "balde" comparando
-            el valor a agregar (x) contra el limite inferior y superior de los baldes definidos (para ir a
-            -Inf o +Inf) y sino, con una cuenta identifica el numero de balde a usar
+    IDEA:   identificar el "balde" en el cual deberia caer el valor (-Inf,0..n,+Inf) y utilizar la función
+            actualizarElem, pasando (+1) como función de actualizacion.
+            Para esto, se utiliza una funcion local bucketIndex, que identifica el número de "balde" comparando
+            el valor a agregar (x) contra el límite inferior y superior de los baldes definidos (para ir a
+            -Inf o +Inf) y sino, con una cuenta identifica el número de balde a usar
 -}
 agregar :: Float -> Histograma -> Histograma
 agregar x (Histograma first size values) = Histograma first size (actualizarElem bucketIndex (+1) values)
@@ -62,11 +62,11 @@ agregar x (Histograma first size values) = Histograma first size (actualizarElem
 
 -- | Arma un histograma a partir de una lista de números reales con la cantidad de casilleros y rango indicados.
 {-
-    IDEA:   la funcion es muy simple. Se usara foldr para procesar la lista de numeros. Para cada numero,
-            la funcion agregar (definida mas arriba) sera responsable de agregar el numero al histograma,
-            que es el acumulador de foldr. El histograma (acumulador) se define utilizando la funcion
-            vacio (definida mas arriba) que inicializa el histograma con los atributos n lower/upper pasados
-            a esta funcion
+    IDEA:   la función es muy simple. Se usa foldr para procesar la lista de números. Para cada número,
+            la función agregar (definida mas arriba) es responsable de agregar el número al histograma,
+            que es el acumulador de foldr. El histograma (acumulador) se define utilizando la función
+            vacío (definida más arriba) que inicializa el histograma con los atributos n lower/upper pasados
+            a esta función
 -}
 histograma :: Int -> (Float, Float) -> [Float] -> Histograma
 histograma n (lower, upper) values = foldr agregar (vacio n (lower, upper)) values
@@ -96,9 +96,9 @@ casPorcentaje (Casillero _ _ _ p) = p
 
 -- | Dado un histograma, devuelve la lista de casilleros con sus límites, cantidad y porcentaje.
 {-
-    IDEA:   se usa zipWith4 (recibe 4 listas y pasa 4 parametros a la funcion de construccion) con
-            Casillero (el constructor) como funcion de armado. Las listas contienen: el inicio de rango,
-            el fin de rango, los valores (parametro) y los porcentajes (mapeada desde valores).
+    IDEA:   se usa zipWith4 (recibe 4 listas y pasa 4 parámetros a la función de "unión") con
+            Casillero (el constructor) como función de armado. Las listas contienen: el inicio de rango,
+            el fin de rango, los valores (parámetro) y los porcentajes (mapeada desde valores).
             Las listas de rangos de inicio y fin, se arman usando n-1 (n = length valores del histograma)
             y el punto del rango (infinito negativo para inicio al comienzo e infinito positivo para el
             rango de fin al final)

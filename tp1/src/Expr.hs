@@ -22,13 +22,61 @@ data Expr
   | Div Expr Expr
   deriving (Show, Eq)
 
--- recrExpr :: ... anotar el tipo ...
-recrExpr :: a
-recrExpr = error "COMPLETAR EJERCICIO 7"
+{-
+foldr               :: (a -> b -> b) -> b -> [a] -> b
+foldr f z []        = z
+foldr f z (x : xs)  = f x (foldr f z xs)
 
--- foldExpr :: ... anotar el tipo ...
-foldExpr :: a
-foldExpr = error "COMPLETAR EJERCICIO 7"
+recr                :: (a -> [a] -> b -> b) -> b -> [a] -> b
+recr f z []         = z
+recr f z (x : xs)   = f x xs (recr f z xs)
+
+foldl               :: (b -> a -> b) -> b -> [a] -> b
+foldl f ac []       = ac
+foldl f ac (x : xs) = foldl f (f ac x) xs
+
+-}
+
+-- | @recrExpr fConst fRango fSuma fResta fMult fDiv expr@ procesa @expr@ utilizando el esquema de Recursión Primitiva,
+-- donde @fConst@, @fRango@, @fSuma@, @fResta@, @fMult@ y @fDiv@ son las funciones específicas para procesar cada
+-- constructor de Expr. Todas estas funciones reciben los mismos parámetros que el constructor con el agregado de
+-- un parámetro de tipo Expr, que es la propia expresión que está siendo evaluada (esto es en general de importancia
+-- para las funciones @fSuma@, @fResta@, @fMult@ y @fDiv@)
+{-
+    IDEA:   se implementa el esquema de Recursión Primitiva para el cual se requieren N funciones (una por cada constructor
+            disponible en el tipo Expr). Estas funciones toman no solo los atributos de dicho constructor, sino que además
+            toman la propia expr que está siendo evaluada, dado que la recursión primitiva permite "ver" el resto de la
+            información en cada punto de procesamiento
+-}
+recrExpr :: (Float -> Expr -> a) -> (Float -> Float -> Expr -> a) -> (a -> a -> Expr -> a) -> (a -> a -> Expr -> a) -> (a -> a -> Expr -> a) -> (a -> a -> Expr -> a) -> Expr -> a
+recrExpr fConst fRango fSuma fResta fMult fDiv expr = case expr of
+        Const f             -> fConst f expr
+        Rango s e           -> fRango e e expr
+        Suma expr1 expr2    -> fSuma  (recurse expr1) (recurse expr2) expr
+        Resta expr1 expr2   -> fResta (recurse expr1) (recurse expr2) expr
+        Mult expr1 expr2    -> fMult  (recurse expr1) (recurse expr2) expr
+        Div expr1 expr2     -> fDiv   (recurse expr1) (recurse expr2) expr
+  where
+      recurse e = recrExpr fConst fRango fSuma fResta fMult fDiv e
+
+-- | @recrExpr fConst fRango fSuma fResta fMult fDiv expr@ procesa @expr@ utilizando el esquema de Recursión Estructural,
+-- donde @fConst@, @fRango@, @fSuma@, @fResta@, @fMult@ y @fDiv@ son las funciones específicas para procesar cada
+-- constructor de Expr
+{-
+    IDEA:   se implementa el esquema de Recursión Estructural para el cual se requieren N funciones (una por cada constructor
+            disponible en el tipo Expr). Estas funciones toman los atributos de dicho constructor
+-}
+foldExpr :: (Float -> a) -> (Float -> Float -> a) -> (a -> a -> a) -> (a -> a -> a) -> (a -> a -> a) -> (a -> a -> a) -> Expr -> a
+foldExpr fConst fRango fSuma fResta fMult fDiv expr = case expr of
+        Const f             -> fConst f
+        Rango s e           -> fRango e e
+        Suma expr1 expr2    -> fSuma  (recurse expr1) (recurse expr2)
+        Resta expr1 expr2   -> fResta (recurse expr1) (recurse expr2)
+        Mult expr1 expr2    -> fMult  (recurse expr1) (recurse expr2)
+        Div expr1 expr2     -> fDiv   (recurse expr1) (recurse expr2)
+  where
+      recurse e = foldExpr fConst fRango fSuma fResta fMult fDiv e
+
 
 -- | Evaluar expresiones dado un generador de números aleatorios
 eval :: Expr -> G Float
