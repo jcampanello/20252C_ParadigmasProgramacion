@@ -145,7 +145,44 @@ evalHistograma m n expr = armarHistograma m n (eval expr)
 -- | Mostrar las expresiones, pero evitando algunos paréntesis innecesarios.
 -- En particular queremos evitar paréntesis en sumas y productos anidados.
 mostrar :: Expr -> String
-mostrar = error "COMPLETAR EJERCICIO 11"
+--mostrar = error "COMPLETAR EJERCICIO 11"
+mostrar expr = recrExpr fConst fRango fSuma fResta fMult fDiv expr
+    where
+        -- casos simples - constante y rango
+        fConst f me = maybeParen (f < 0) (show f)
+        fRango s e me = maybeParen False (maybeParen (s < 0) (show s) ++ "~" ++ maybeParen (e < 0) (show e))
+        -- casos sin reduccion de parentesis
+        fResta expr1 expr2 me = maybeParen True (expr1 ++ " - " ++ expr2)
+        fDiv expr1 expr2 me = maybeParen True (expr1 ++ " / " ++ expr2)
+        -- casos con reduccion de parentesis
+        fSuma expr1 expr2 me = maybeParen (cuandoParentesis me) (expr1 ++ " + " ++ expr2)
+        fMult expr1 expr2 me = maybeParen (cuandoParentesis me) (expr1 ++ " * " ++ expr2)
+        -- decidimos cuando no hacen falta parentesis
+        cuandoParentesis :: Expr -> Bool
+        cuandoParentesis (Suma leftOp rightOp)  = _cuando CEMult (constructor leftOp) (constructor rightOp)
+        cuandoParentesis (Mult leftOp rightOp)  = _cuando CEMult (constructor leftOp) (constructor rightOp)
+        cuandoParentesis _                      = True
+        _cuando :: ConstructorExpr -> ConstructorExpr -> ConstructorExpr -> Bool
+        _cuando _      CEConst CEConst = False
+        _cuando _      CEConst CERango = False
+        _cuando _      CERango CEConst = False
+        _cuando _      CERango CERango = False
+        _cuando CESuma CESuma  CESuma  = False
+        _cuando CEMult CEMult  CEMult  = False
+        _cuando _      _       _       = True
+
+{-
+recrExpr :: (Float -> Expr -> a) -> (Float -> Float -> Expr -> a) -> (a -> a -> Expr -> a) -> (a -> a -> Expr -> a) -> (a -> a -> Expr -> a) -> (a -> a -> Expr -> a) -> Expr -> a
+recrExpr fConst fRango fSuma fResta fMult fDiv expr = case expr of
+        Const f             -> fConst f expr
+        Rango s e           -> fRango s e expr
+        Suma expr1 expr2    -> fSuma  (recurse expr1) (recurse expr2) expr
+        Resta expr1 expr2   -> fResta (recurse expr1) (recurse expr2) expr
+        Mult expr1 expr2    -> fMult  (recurse expr1) (recurse expr2) expr
+        Div expr1 expr2     -> fDiv   (recurse expr1) (recurse expr2) expr
+  where
+      recurse e = recrExpr fConst fRango fSuma fResta fMult fDiv e
+-}
 
 data ConstructorExpr = CEConst | CERango | CESuma | CEResta | CEMult | CEDiv
   deriving (Show, Eq)
