@@ -9,6 +9,7 @@ module Expr
   )
 where
 
+import Util ( infinitoNegativo, infinitoPositivo )
 import Generador
 import Histograma
 
@@ -80,12 +81,41 @@ foldExpr fConst fRango fSuma fResta fMult fDiv expr = case expr of
 
 -- | Evaluar expresiones dado un generador de números aleatorios
 eval :: Expr -> G Float
-eval = error "COMPLETAR EJERCICIO 8"
+eval expr = foldExpr fConst fRango fSuma fResta fMult fDiv expr
+    where
+        -- las funciones directas en uso
+        fConst f = _const f
+        fRango s e = dameUno (s, e)
+        fSuma l r = _binOper (+) l r
+        fResta l r = _binOper (-) l r
+        fMult l r = _binOper (*) l r
+        fDiv l r = _binOperWithInf (/) l r
+        -- auxiliares para Const y Suma, Resta y Mult
+        _const f gen = (f, gen)
+        _binOper :: (Float -> Float -> Float) -> G Float -> G Float -> G Float
+        _binOper op leftOp rightOp gen = (op leftVal rightVal, genR)
+            where
+                (leftVal, genL)  = leftOp gen
+                (rightVal, genR) = rightOp genL
+        -- auxiliares para operadores binarios con saturacion a infinito
+        _binOperWithInf :: (Float -> Float -> Float) -> G Float -> G Float -> G Float
+        _binOperWithInf op leftOp rightOp gen
+                | rightVal == 0   = (if leftVal < 0 then infinitoNegativo else infinitoPositivo, genR)
+                | otherwise       = (op leftVal rightVal, genR)
+            where
+                (leftVal, genL)  = leftOp gen
+                (rightVal, genR) = rightOp genL
+
 
 -- | @armarHistograma m n f g@ arma un histograma con @m@ casilleros
 -- a partir del resultado de tomar @n@ muestras de @f@ usando el generador @g@.
 armarHistograma :: Int -> Int -> G Float -> G Histograma
-armarHistograma m n f g = error "COMPLETAR EJERCICIO 9"
+armarHistograma m n f g = (histograma m (lowerRange, upperRange) sampleValues, updatedF)
+    where
+        (sampleValues, updatedF) = muestra f n g
+        (lowerRange, upperRange) = rango95 sampleValues
+
+
 
 -- | @evalHistograma m n e g@ evalúa la expresión @e@ usando el generador @g@ @n@ veces
 -- devuelve un histograma con @m@ casilleros y rango calculado con @rango95@ para abarcar el 95% de confianza de los valores.

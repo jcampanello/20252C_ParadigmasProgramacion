@@ -4,7 +4,7 @@ import App
 import Expr
 import Expr.Parser
 import GHC.Stack (HasCallStack)
-import Generador
+import Generador ( genFijo, genNormalConSemilla )
 import Histograma
 import Test.HUnit
 import Util
@@ -252,13 +252,55 @@ testsEval =
       fst (eval (Suma (Rango 1 5) (Const 1)) (genNormalConSemilla 0)) ~?= 3.7980492,
       -- el primer rango evalua a 2.7980492 y el segundo a 3.1250308
       fst (eval (Suma (Rango 1 5) (Rango 1 5)) (genNormalConSemilla 0)) ~?= 5.92308,
-      completar
+      -- test suma
+      fst (eval (Suma (Const 0) (Const 0)) genFijo) ~?= 0,
+      fst (eval (Suma (Const 0) (Const 1)) genFijo) ~?= 1,
+      fst (eval (Suma (Const 17) (Const (-20))) genFijo) ~?= (-3),
+      -- test resta
+      fst (eval (Resta (Const 0) (Const 0)) genFijo) ~?= 0,
+      fst (eval (Resta (Const 1) (Const 0)) genFijo) ~?= 1,
+      fst (eval (Resta (Const 0) (Const 1)) genFijo) ~?= (-1),
+      fst (eval (Resta (Const 17) (Const (-20))) genFijo) ~?= 37,
+      -- test mult
+      fst (eval (Mult (Const 0) (Const 0)) genFijo) ~?= 0,
+      fst (eval (Mult (Const 1) (Const 0)) genFijo) ~?= 0,
+      fst (eval (Mult (Const 0) (Const 1)) genFijo) ~?= 0,
+      fst (eval (Mult (Const 1) (Const 1)) genFijo) ~?= 1,
+      fst (eval (Mult (Const 1) (Const (-1))) genFijo) ~?= (-1),
+      fst (eval (Mult (Const 15) (Const 3)) genFijo) ~?= 45,
+      -- test div
+      fst (eval (Div (Const 0) (Const 0)) genFijo) ~?= infinitoPositivo,
+      fst (eval (Div (Const 1) (Const 0)) genFijo) ~?= infinitoPositivo,
+      fst (eval (Div (Const (-1)) (Const 0)) genFijo) ~?= infinitoNegativo,
+      fst (eval (Div (Const 10) (Const 5)) genFijo) ~?= 2,
+      fst (eval (Div (Const 10) (Const 3)) genFijo) ~?= 3.3333333,
+      fst (eval (Div (Const 10) (Const 100)) genFijo) ~?= 0.1,
+      -- test expresion compleja
+      fst (eval (Div (Mult (Const 70) (Resta (Const 8) (Suma (Const 4) (Const 2)))) (Rango 99 101)) genFijo) ~?= 1.4
     ]
 
 testsArmarHistograma :: Test
 testsArmarHistograma =
   test
-    [completar]
+    [
+      casilleros (fst (armarHistograma 2 10 (eval (Const 1)) genFijo)) ~?= 
+            [
+              Casillero infinitoNegativo 0.0 0 0.0,
+              Casillero 0.0 1.0 0 0.0,
+              Casillero 1.0 2.0 10 100.0,
+              Casillero 2.0 infinitoPositivo 0 0.0
+            ],
+      casilleros (fst (armarHistograma 5 20 (eval (Rango (-2) 2)) (genNormalConSemilla 0) )) ~?= 
+            [
+              Casillero infinitoNegativo (-2.0378144) 0 0.0,
+              Casillero (-2.0378144) (-1.1744351) 3 15.000001,
+              Casillero (-1.1744351) (-0.31105578) 3 15.000001,
+              Casillero (-0.31105578) 0.5523236 6 30.000002,
+              Casillero 0.5523236 1.4157028 5 25.0,
+              Casillero 1.4157028 2.279082 2 10.0,
+              Casillero 2.279082 infinitoPositivo 1 5.0
+            ]
+    ]
 
 testsEvalHistograma :: Test
 testsEvalHistograma =
