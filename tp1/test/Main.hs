@@ -305,7 +305,25 @@ testsArmarHistograma =
 testsEvalHistograma :: Test
 testsEvalHistograma =
   test
-    [completar]
+    [
+      casilleros (fst (evalHistograma 2 10 (Const 1) genFijo) ) ~?= 
+            [
+              Casillero infinitoNegativo 0.0 0 0.0,
+              Casillero 0.0 1.0 0 0.0,
+              Casillero 1.0 2.0 10 100.0,
+              Casillero 2.0 infinitoPositivo 0 0.0
+            ],
+      casilleros (fst (evalHistograma 5 20 (Rango (-2) 2) (genNormalConSemilla 0) ) ) ~?= 
+            [
+              Casillero infinitoNegativo (-2.0378144) 0 0.0,
+              Casillero (-2.0378144) (-1.1744351) 3 15.000001,
+              Casillero (-1.1744351) (-0.31105578) 3 15.000001,
+              Casillero (-0.31105578) 0.5523236 6 30.000002,
+              Casillero 0.5523236 1.4157028 5 25.0,
+              Casillero 1.4157028 2.279082 2 10.0,
+              Casillero 2.279082 infinitoPositivo 1 5.0
+            ]
+    ]
 
 testsParse :: Test
 testsParse =

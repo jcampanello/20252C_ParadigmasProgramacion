@@ -23,20 +23,6 @@ data Expr
   | Div Expr Expr
   deriving (Show, Eq)
 
-{-
-foldr               :: (a -> b -> b) -> b -> [a] -> b
-foldr f z []        = z
-foldr f z (x : xs)  = f x (foldr f z xs)
-
-recr                :: (a -> [a] -> b -> b) -> b -> [a] -> b
-recr f z []         = z
-recr f z (x : xs)   = f x xs (recr f z xs)
-
-foldl               :: (b -> a -> b) -> b -> [a] -> b
-foldl f ac []       = ac
-foldl f ac (x : xs) = foldl f (f ac x) xs
-
--}
 
 -- | @recrExpr fConst fRango fSuma fResta fMult fDiv expr@ procesa @expr@ utilizando el esquema de Recursión Primitiva,
 -- donde @fConst@, @fRango@, @fSuma@, @fResta@, @fMult@ y @fDiv@ son las funciones específicas para procesar cada
@@ -80,6 +66,19 @@ foldExpr fConst fRango fSuma fResta fMult fDiv expr = case expr of
 
 
 -- | Evaluar expresiones dado un generador de números aleatorios
+{-
+    IDEA:     se procesa el árbol representado por la expresión, de forma que para cada nodo se arma una función
+              (currificada) que resuelve la operación pero a la cual le queda el parámetro generador pendiente
+              (de ahí la currificación). Hay 4 tipos de función generada, asociada a los tipos de nodos de la
+              expresión:
+                - const (retorna un número constante)
+                - rango (retorna dameUno con el rango, pero que no queda evaluada por faltar el generador)
+                - operador binario (para +, - y *) que toma dos operandos (left y right) y aplica, pasando el
+                  generador por el primero operando y el generador actualizado al segundo
+                - operador binario con saturación a infinito (para /). Similar al anterior, pero se evalua que
+                  si el segundo operando es 0 => se retorna +/- Infinito según el signo del primer operando.
+                  ESTE CASO es importante para lograr que Div sea una función total
+-}
 eval :: Expr -> G Float
 eval expr = foldExpr fConst fRango fSuma fResta fMult fDiv expr
     where
@@ -109,6 +108,13 @@ eval expr = foldExpr fConst fRango fSuma fResta fMult fDiv expr
 
 -- | @armarHistograma m n f g@ arma un histograma con @m@ casilleros
 -- a partir del resultado de tomar @n@ muestras de @f@ usando el generador @g@.
+{-
+    IDEA:   se evalúan dos funciones (muestra y rango95), que retornarán datos parciales necesarios
+            para crear el histograma.
+            La función muestra permite obtener una muestra de N números.
+            Esta muestra es luego pasada a la función rango95 que calcula el rango de 95% de confianza (lower y upper)
+            que permitirá definir los casilleros del histograma
+-}
 armarHistograma :: Int -> Int -> G Float -> G Histograma
 armarHistograma m n f g = (histograma m (lowerRange, upperRange) sampleValues, updatedF)
     where
@@ -120,8 +126,14 @@ armarHistograma m n f g = (histograma m (lowerRange, upperRange) sampleValues, u
 -- | @evalHistograma m n e g@ evalúa la expresión @e@ usando el generador @g@ @n@ veces
 -- devuelve un histograma con @m@ casilleros y rango calculado con @rango95@ para abarcar el 95% de confianza de los valores.
 -- @n@ debe ser mayor que 0.
+{-
+    IDEA:   esta función es en general un simple wrapper a armarHistograma, solo que recibe una expresión en lugar de
+            f y dicha expresión se convierte a función realizando una evaluación parcial
+-}
 evalHistograma :: Int -> Int -> Expr -> G Histograma
-evalHistograma m n expr = error "COMPLETAR EJERCICIO 10"
+evalHistograma m n expr = armarHistograma m n (eval expr)
+
+
 
 -- Podemos armar histogramas que muestren las n evaluaciones en m casilleros.
 -- >>> evalHistograma 11 10 (Suma (Rango 1 5) (Rango 100 105)) (genNormalConSemilla 0)
