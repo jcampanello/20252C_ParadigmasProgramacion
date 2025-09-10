@@ -4,26 +4,12 @@ module Util where
 -- | @alinearDerecha n s@ agrega espacios a la izquierda de @s@ hasta que su longitud sea @n@.
 -- Si @s@ ya tiene longitud @>= n@, devuelve @s@.
 {-
-    IDEA:   la idea es procesar la lista con foldr, generando una tupla como resultado. Al comenzar, el primer
-            elemento está vacio y el segundo elemento tiene un cadena de N espacios.
-            Por cada elemento de la cadena de input, se acumula en el primer elemento de la tupla y se elimina
-            el primer espacio del segundo elemento (salvo que este sea la cadena vacía, en cuyo caso el resultado
-            no tendrá padding a izquierda).
-            Al finalizar, se concatenan el segundo elemento y el primero (el segundo elemento contendra el
-            padding necesario si hiciera falta)
-
-    ACLARACION: es obvio que esto se puede resolver con un IF sobre la longitud de la cadena, pero el
-                enunciado dice "No se permite recursion explicita" haciendo entender que se desea el uso
-                de foldr, foldl o recr
+    IDEA:   agregar adelante del string una cantidad de espacios. La cantidad de espacios se calcula como n
+            (el parámetro) menos la longitud del string. Si la longitud de s es mayor a n, el valor queda negativo
+            pero replicate entrega lista vacía si se le pide una cantidad cero o negativa
 -}
 alinearDerecha :: Int -> String -> String
-alinearDerecha n s = snd padded ++ fst padded
-    where
-        padded = foldr accumAndTrim ( "", take n (repeat ' ') ) s
-            where
-                accumAndTrim :: Char -> (String, String) -> (String, String)
-                accumAndTrim c (acc, "")   = (c : acc, "")
-                accumAndTrim c (acc, s:ss) = (c : acc, ss)
+alinearDerecha n s = replicate (n - length s) ' ' ++ s
 
 
 -- | Dado un índice y una función, actualiza el elemento en la posición del índice
