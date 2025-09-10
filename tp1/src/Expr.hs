@@ -149,40 +149,37 @@ mostrar :: Expr -> String
 mostrar expr = recrExpr fConst fRango fSuma fResta fMult fDiv expr
     where
         -- casos simples - constante y rango
-        fConst f me = maybeParen (f < 0) (show f)
-        fRango s e me = maybeParen False (maybeParen (s < 0) (show s) ++ "~" ++ maybeParen (e < 0) (show e))
+        fConst f me            = show f
+        fRango s e me          = show s ++ "~" ++ show e
         -- casos sin reduccion de parentesis
-        fResta expr1 expr2 me = maybeParen True (expr1 ++ " - " ++ expr2)
-        fDiv expr1 expr2 me = maybeParen True (expr1 ++ " / " ++ expr2)
+        fResta  expr1 expr2 me = binOper " - " expr1 expr2 me
+        fDiv    expr1 expr2 me = binOper " / " expr1 expr2 me
         -- casos con reduccion de parentesis
-        fSuma expr1 expr2 me = maybeParen (cuandoParentesis me) (expr1 ++ " + " ++ expr2)
-        fMult expr1 expr2 me = maybeParen (cuandoParentesis me) (expr1 ++ " * " ++ expr2)
-        -- decidimos cuando no hacen falta parentesis
-        cuandoParentesis :: Expr -> Bool
-        cuandoParentesis (Suma leftOp rightOp)  = _cuando CEMult (constructor leftOp) (constructor rightOp)
-        cuandoParentesis (Mult leftOp rightOp)  = _cuando CEMult (constructor leftOp) (constructor rightOp)
-        cuandoParentesis _                      = True
-        _cuando :: ConstructorExpr -> ConstructorExpr -> ConstructorExpr -> Bool
-        _cuando _      CEConst CEConst = False
-        _cuando _      CEConst CERango = False
-        _cuando _      CERango CEConst = False
-        _cuando _      CERango CERango = False
-        _cuando CESuma CESuma  CESuma  = False
-        _cuando CEMult CEMult  CEMult  = False
-        _cuando _      _       _       = True
-
-{-
-recrExpr :: (Float -> Expr -> a) -> (Float -> Float -> Expr -> a) -> (a -> a -> Expr -> a) -> (a -> a -> Expr -> a) -> (a -> a -> Expr -> a) -> (a -> a -> Expr -> a) -> Expr -> a
-recrExpr fConst fRango fSuma fResta fMult fDiv expr = case expr of
-        Const f             -> fConst f expr
-        Rango s e           -> fRango s e expr
-        Suma expr1 expr2    -> fSuma  (recurse expr1) (recurse expr2) expr
-        Resta expr1 expr2   -> fResta (recurse expr1) (recurse expr2) expr
-        Mult expr1 expr2    -> fMult  (recurse expr1) (recurse expr2) expr
-        Div expr1 expr2     -> fDiv   (recurse expr1) (recurse expr2) expr
-  where
-      recurse e = recrExpr fConst fRango fSuma fResta fMult fDiv e
--}
+        fSuma   expr1 expr2 me = binOper " + " expr1 expr2 me
+        fMult   expr1 expr2 me = binOper " * " expr1 expr2 me
+        -- resolucion general para operadores binarios
+        binOper :: String -> String -> String -> Expr -> String
+        binOper sep expr1 expr2 me = maybeParen (_cuandoLeft me) expr1 ++ sep ++ maybeParen (_cuandoRight me) expr2
+        -- decidimos cuando no hacen falta parentesis (para el operador derecho e izquierdo)
+        _cuandoLeft :: Expr -> Bool
+        _cuandoLeft (Suma leftOp _)     = _cuando CESuma  (constructor leftOp)
+        _cuandoLeft (Resta leftOp _)    = _cuando CEResta (constructor leftOp)
+        _cuandoLeft (Mult leftOp _)     = _cuando CEMult  (constructor leftOp)
+        _cuandoLeft (Div leftOp _)      = _cuando CEDiv   (constructor leftOp)
+        _cuandoLeft _                   = False
+        _cuandoRight :: Expr -> Bool
+        _cuandoRight (Suma  _ rightOp)  = _cuando CESuma  (constructor rightOp)
+        _cuandoRight (Resta _ rightOp)  = _cuando CEResta (constructor rightOp)
+        _cuandoRight (Mult  _ rightOp)  = _cuando CEMult  (constructor rightOp)
+        _cuandoRight (Div   _ rightOp)  = _cuando CEDiv   (constructor rightOp)
+        _cuandoRight _                  = False
+        -- decision general de que combinaciones de parentesis se pueden omitor (tipo de expresion del padre e hijo)
+        _cuando :: ConstructorExpr -> ConstructorExpr -> Bool
+        _cuando _      CEConst  = False
+        _cuando _      CERango  = False
+        _cuando CESuma CESuma   = False
+        _cuando CEMult CEMult   = False
+        _cuando _      _        = True
 
 data ConstructorExpr = CEConst | CERango | CESuma | CEResta | CEMult | CEDiv
   deriving (Show, Eq)
