@@ -14,13 +14,12 @@ import Generador
 import Histograma
 
 -- | Expresiones aritméticas con rangos
-data Expr
-  = Const Float
-  | Rango Float Float
-  | Suma Expr Expr
-  | Resta Expr Expr
-  | Mult Expr Expr
-  | Div Expr Expr
+data Expr = Const Float
+          | Rango Float Float
+          | Suma Expr Expr
+          | Resta Expr Expr
+          | Mult Expr Expr
+          | Div Expr Expr
   deriving (Show, Eq)
 
 
@@ -43,8 +42,8 @@ recrExpr fConst fRango fSuma fResta fMult fDiv expr = case expr of
         Resta expr1 expr2   -> fResta (recurse expr1) (recurse expr2) expr
         Mult expr1 expr2    -> fMult  (recurse expr1) (recurse expr2) expr
         Div expr1 expr2     -> fDiv   (recurse expr1) (recurse expr2) expr
-  where
-      recurse e = recrExpr fConst fRango fSuma fResta fMult fDiv e
+    where
+        recurse e = recrExpr fConst fRango fSuma fResta fMult fDiv e
 
 -- | @recrExpr fConst fRango fSuma fResta fMult fDiv expr@ procesa @expr@ utilizando el esquema de Recursión Estructural,
 -- donde @fConst@, @fRango@, @fSuma@, @fResta@, @fMult@ y @fDiv@ son las funciones específicas para procesar cada
@@ -61,8 +60,8 @@ foldExpr fConst fRango fSuma fResta fMult fDiv expr = case expr of
         Resta expr1 expr2   -> fResta (recurse expr1) (recurse expr2)
         Mult expr1 expr2    -> fMult  (recurse expr1) (recurse expr2)
         Div expr1 expr2     -> fDiv   (recurse expr1) (recurse expr2)
-  where
-      recurse e = foldExpr fConst fRango fSuma fResta fMult fDiv e
+    where
+        recurse e = foldExpr fConst fRango fSuma fResta fMult fDiv e
 
 
 -- | Evaluar expresiones dado un generador de números aleatorios
