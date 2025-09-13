@@ -54,10 +54,11 @@ agregar :: Float -> Histograma -> Histograma
 agregar x (Histograma first size values) = Histograma first size (actualizarElem bucketIndex (+1) values)
     where
         bucketCount = length (drop 2 values)
+        upperLimit = first + size * fromIntegral bucketCount
         bucketIndex
-            | x < first                                         = 0
-            | x >= (first + size * fromIntegral bucketCount)    = bucketCount + 1
-            | otherwise                                         = 1 + floor ((x - first) / size)
+            | x < first         = 0
+            | x >= upperLimit   = bucketCount + 1
+            | otherwise         = 1 + floor ((x - first) / size)
 
 
 -- | Arma un histograma a partir de una lista de números reales con la cantidad de casilleros y rango indicados.
@@ -67,9 +68,12 @@ agregar x (Histograma first size values) = Histograma first size (actualizarElem
             que es el acumulador de foldr. El histograma (acumulador) se define utilizando la función
             vacío (definida más arriba) que inicializa el histograma con los atributos n lower/upper pasados
             a esta función
+
+            Se usa foldr porque en este caso, el histograma resultado es el mismo independientemente del orden
+            en que se insertan los valores
 -}
 histograma :: Int -> (Float, Float) -> [Float] -> Histograma
-histograma n (lower, upper) values = foldr agregar (vacio n (lower, upper)) values
+histograma n range values = foldr agregar (vacio n range) values
 
 
 -- | Un `Casillero` representa un casillero del histograma con sus límites, cantidad y porcentaje.
@@ -104,11 +108,13 @@ casPorcentaje (Casillero _ _ _ p) = p
             rango de fin al final)
 -}
 casilleros :: Histograma -> [Casillero]
-casilleros (Histograma first size values) = zipWith4 Casillero rangosInicio rangosFin values (map (percentage . fromIntegral) values)
+casilleros (Histograma first size values) = zipWith4 Casillero rangosInicio rangosFin values porcentajes
     where
         nroTotalBaldes = length values
         nroBaldes = nroTotalBaldes - 2
-        rangosInicio = infinitoNegativo : [ first + (size * fromIntegral nro) | nro <- [0 .. nroBaldes] ]
-        rangosFin = [ first + (size * fromIntegral nro) | nro <- [0 .. nroBaldes] ] ++ [infinitoPositivo]
+        limitesBaldes = [ first + (size * fromIntegral nro) | nro <- [0 .. nroBaldes] ]
+        rangosInicio = infinitoNegativo : limitesBaldes
+        rangosFin = limitesBaldes ++ [infinitoPositivo]
         cantTotalValores = fromIntegral (sum values)
+        porcentajes = map (percentage . fromIntegral) values
         percentage cantidad = if cantTotalValores == 0 then 0::Float else (cantidad / cantTotalValores) * 100.0

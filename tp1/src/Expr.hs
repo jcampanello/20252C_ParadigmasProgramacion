@@ -35,7 +35,8 @@ data Expr = Const Float
             información en cada punto de procesamiento
 -}
 recrExpr :: (Float -> Expr -> a) -> (Float -> Float -> Expr -> a) -> (a -> a -> Expr -> a) -> (a -> a -> Expr -> a) -> (a -> a -> Expr -> a) -> (a -> a -> Expr -> a) -> Expr -> a
-recrExpr fConst fRango fSuma fResta fMult fDiv expr = case expr of
+recrExpr fConst fRango fSuma fResta fMult fDiv expr =
+    case expr of
         Const f             -> fConst f expr
         Rango s e           -> fRango s e expr
         Suma expr1 expr2    -> fSuma  (recurse expr1) (recurse expr2) expr
@@ -53,7 +54,8 @@ recrExpr fConst fRango fSuma fResta fMult fDiv expr = case expr of
             disponible en el tipo Expr). Estas funciones toman los atributos de dicho constructor
 -}
 foldExpr :: (Float -> a) -> (Float -> Float -> a) -> (a -> a -> a) -> (a -> a -> a) -> (a -> a -> a) -> (a -> a -> a) -> Expr -> a
-foldExpr fConst fRango fSuma fResta fMult fDiv expr = case expr of
+foldExpr fConst fRango fSuma fResta fMult fDiv expr =
+    case expr of
         Const f             -> fConst f
         Rango s e           -> fRango s e
         Suma expr1 expr2    -> fSuma  (recurse expr1) (recurse expr2)
@@ -87,22 +89,18 @@ eval expr = foldExpr fConst fRango fSuma fResta fMult fDiv expr
         fSuma l r = _binOper (+) l r
         fResta l r = _binOper (-) l r
         fMult l r = _binOper (*) l r
-        fDiv l r = _binOperWithInf (/) l r
-        -- auxiliares para Const y Suma, Resta y Mult
+        fDiv l r = _binOper _operDiv l r
+        -- auxiliares para Const y Div
         _const f gen = (f, gen)
+        _operDiv l r = if r == 0 then if l < 0 then infinitoNegativo else infinitoPositivo else l / r
+        -- procesamos operaciones binarias
         _binOper :: (Float -> Float -> Float) -> G Float -> G Float -> G Float
         _binOper op leftOp rightOp gen = (op leftVal rightVal, genR)
             where
                 (leftVal, genL)  = leftOp gen
                 (rightVal, genR) = rightOp genL
-        -- auxiliares para operadores binarios con saturacion a infinito
-        _binOperWithInf :: (Float -> Float -> Float) -> G Float -> G Float -> G Float
-        _binOperWithInf op leftOp rightOp gen
-                | rightVal == 0   = (if leftVal < 0 then infinitoNegativo else infinitoPositivo, genR)
-                | otherwise       = (op leftVal rightVal, genR)
-            where
-                (leftVal, genL)  = leftOp gen
-                (rightVal, genR) = rightOp genL
+
+
 
 
 -- | @armarHistograma m n f g@ arma un histograma con @m@ casilleros
@@ -115,10 +113,10 @@ eval expr = foldExpr fConst fRango fSuma fResta fMult fDiv expr
             que permitirá definir los casilleros del histograma
 -}
 armarHistograma :: Int -> Int -> G Float -> G Histograma
-armarHistograma m n f g = (histograma m (lowerRange, upperRange) sampleValues, updatedF)
+armarHistograma m n f g = (histograma m (rangoInicio, rangoFin) muestras, g_modificado)
     where
-        (sampleValues, updatedF) = muestra f n g
-        (lowerRange, upperRange) = rango95 sampleValues
+        (muestras, g_modificado) = muestra f n g
+        (rangoInicio, rangoFin) = rango95 muestras
 
 
 
@@ -144,16 +142,14 @@ evalHistograma m n expr = armarHistograma m n (eval expr)
 -- | Mostrar las expresiones, pero evitando algunos paréntesis innecesarios.
 -- En particular queremos evitar paréntesis en sumas y productos anidados.
 mostrar :: Expr -> String
---mostrar = error "COMPLETAR EJERCICIO 11"
 mostrar expr = recrExpr fConst fRango fSuma fResta fMult fDiv expr
     where
         -- casos simples - constante y rango
         fConst f me            = show f
         fRango s e me          = show s ++ "~" ++ show e
-        -- casos sin reduccion de parentesis
+        -- casos complejos - operadores binarios
         fResta  expr1 expr2 me = binOper " - " expr1 expr2 me
         fDiv    expr1 expr2 me = binOper " / " expr1 expr2 me
-        -- casos con reduccion de parentesis
         fSuma   expr1 expr2 me = binOper " + " expr1 expr2 me
         fMult   expr1 expr2 me = binOper " * " expr1 expr2 me
         -- resolucion general para operadores binarios
@@ -161,10 +157,10 @@ mostrar expr = recrExpr fConst fRango fSuma fResta fMult fDiv expr
         binOper sep expr1 expr2 me = maybeParen (_cuandoLeft me) expr1 ++ sep ++ maybeParen (_cuandoRight me) expr2
         -- decidimos cuando no hacen falta parentesis (para el operador derecho e izquierdo)
         _cuandoLeft :: Expr -> Bool
-        _cuandoLeft (Suma leftOp _)     = _cuando CESuma  (constructor leftOp)
-        _cuandoLeft (Resta leftOp _)    = _cuando CEResta (constructor leftOp)
-        _cuandoLeft (Mult leftOp _)     = _cuando CEMult  (constructor leftOp)
-        _cuandoLeft (Div leftOp _)      = _cuando CEDiv   (constructor leftOp)
+        _cuandoLeft (Suma   leftOp _)   = _cuando CESuma  (constructor leftOp)
+        _cuandoLeft (Resta  leftOp _)   = _cuando CEResta (constructor leftOp)
+        _cuandoLeft (Mult   leftOp _)   = _cuando CEMult  (constructor leftOp)
+        _cuandoLeft (Div    leftOp _)   = _cuando CEDiv   (constructor leftOp)
         _cuandoLeft _                   = False
         _cuandoRight :: Expr -> Bool
         _cuandoRight (Suma  _ rightOp)  = _cuando CESuma  (constructor rightOp)
@@ -179,6 +175,7 @@ mostrar expr = recrExpr fConst fRango fSuma fResta fMult fDiv expr
         _cuando CESuma CESuma   = False
         _cuando CEMult CEMult   = False
         _cuando _      _        = True
+
 
 data ConstructorExpr = CEConst | CERango | CESuma | CEResta | CEMult | CEDiv
   deriving (Show, Eq)

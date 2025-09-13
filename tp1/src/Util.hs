@@ -24,7 +24,7 @@ alinearDerecha n s = replicate (n - length s) ' ' ++ s
             fuera del rango superior (no habrá mas valores) y esto ocurre por como funciona zipWith
 -}
 actualizarElem :: Int -> (a -> a) -> [a] -> [a]
-actualizarElem n f xs = zipWith (\ x idx -> if idx == n then f x else x) xs [0..]
+actualizarElem n f xs = zipWith (\ x i -> if i == n then f x else x) xs [0..]
 
 
 -- | infinito positivo (Haskell no tiene literal para +infinito)
