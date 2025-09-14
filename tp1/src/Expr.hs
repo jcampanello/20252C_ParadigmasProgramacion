@@ -70,15 +70,15 @@ foldExpr fConst fRango fSuma fResta fMult fDiv expr =
 {-
     IDEA:     se procesa el árbol representado por la expresión, de forma que para cada nodo se arma una función
               (currificada) que resuelve la operación pero a la cual le queda el parámetro generador pendiente
-              (de ahí la currificación). Hay 4 tipos de función generada, asociada a los tipos de nodos de la
+              (evaluacion parcial). Hay 3 tipos de función generada, asociada a los tipos de nodos de la
               expresión:
                 - const (retorna un número constante)
                 - rango (retorna dameUno con el rango, pero que no queda evaluada por faltar el generador)
-                - operador binario (para +, - y *) que toma dos operandos (left y right) y aplica, pasando el
+                - operador binario (para +, -, * y /) que toma dos operandos (left y right) y aplica, pasando el
                   generador por el primero operando y el generador actualizado al segundo
-                - operador binario con saturación a infinito (para /). Similar al anterior, pero se evalua que
-                  si el segundo operando es 0 => se retorna +/- Infinito según el signo del primer operando.
-                  ESTE CASO es importante para lograr que Div sea una función total
+              NOTAR que en el caso Div, se pasa una función específica y no el operador (/). Esto es para lograr
+              que la evaluación del caso Div sea total. Esta función observa el divisor y si es 0, entonces
+              satura el resultado en +/- Infinito (según el signo del dividendo)
 -}
 eval :: Expr -> G Float
 eval expr = foldExpr fConst fRango fSuma fResta fMult fDiv expr
@@ -141,33 +141,50 @@ evalHistograma m n expr = armarHistograma m n (eval expr)
 
 -- | Mostrar las expresiones, pero evitando algunos paréntesis innecesarios.
 -- En particular queremos evitar paréntesis en sumas y productos anidados.
+{-
+    IDEA:   La resolución utiliza recrExpr debido a que es necesario poder evaluar el nodo y sus hijos para decidir
+            cuando se debe o no presentar paréntesis (ej: padre + e hijo + => no se usan paréntesis alrededor del hijo).
+            Esto implica la necesidad de utilizar recursión primitiva, de ahí recrExpr.
+            Respecto de la resolución, se consideran 3 tipos de casos:
+                - Const en donde simplemente se muestra el número de punto flotante
+                - Range en donde se concatenan los dos valores de punto flotante junto con "~"
+                - Operadores Binarios (Resta, Div, Suma, Mult). Estos se resuelven todos de la misma forma, utilizando una
+                  función interna binOper
+            La función binOper recibe el separador (string, ej " + ") a usar, las expresiones correspondientes a los hijos
+            y la propia expresión (denotada "yo"). Con esto, se usa maybeParen para representar el caso de agregar o no
+            paréntesis a cada subexpresión. Para decidir, se usan funciones locales (_cuandoLeft y _cuandoRight) que
+            observan padre (yo) e hijo (leftOp o rightOp) y una función auxiliar que decide cuando no se requieren
+            paréntesis
+-}
 mostrar :: Expr -> String
 mostrar expr = recrExpr fConst fRango fSuma fResta fMult fDiv expr
     where
         -- casos simples - constante y rango
-        fConst f me            = show f
-        fRango s e me          = show s ++ "~" ++ show e
+        fConst f yo            = show f
+        fRango s e yo          = show s ++ "~" ++ show e
         -- casos complejos - operadores binarios
-        fResta  expr1 expr2 me = binOper " - " expr1 expr2 me
-        fDiv    expr1 expr2 me = binOper " / " expr1 expr2 me
-        fSuma   expr1 expr2 me = binOper " + " expr1 expr2 me
-        fMult   expr1 expr2 me = binOper " * " expr1 expr2 me
+        fSuma   expr1 expr2 yo = binOper " + " expr1 expr2 yo
+        fResta  expr1 expr2 yo = binOper " - " expr1 expr2 yo
+        fMult   expr1 expr2 yo = binOper " * " expr1 expr2 yo
+        fDiv    expr1 expr2 yo = binOper " / " expr1 expr2 yo
+
         -- resolucion general para operadores binarios
         binOper :: String -> String -> String -> Expr -> String
-        binOper sep expr1 expr2 me = maybeParen (_cuandoLeft me) expr1 ++ sep ++ maybeParen (_cuandoRight me) expr2
+        binOper sep expr1 expr2 yo = maybeParen (_cuandoLeft yo) expr1 ++ sep ++ maybeParen (_cuandoRight yo) expr2
+
         -- decidimos cuando no hacen falta parentesis (para el operador derecho e izquierdo)
         _cuandoLeft :: Expr -> Bool
-        _cuandoLeft (Suma   leftOp _)   = _cuando CESuma  (constructor leftOp)
-        _cuandoLeft (Resta  leftOp _)   = _cuando CEResta (constructor leftOp)
-        _cuandoLeft (Mult   leftOp _)   = _cuando CEMult  (constructor leftOp)
-        _cuandoLeft (Div    leftOp _)   = _cuando CEDiv   (constructor leftOp)
-        _cuandoLeft _                   = False
+        _cuandoLeft yo                  = _cuando (constructor yo) (constructor (fst (_operandos yo)))
         _cuandoRight :: Expr -> Bool
-        _cuandoRight (Suma  _ rightOp)  = _cuando CESuma  (constructor rightOp)
-        _cuandoRight (Resta _ rightOp)  = _cuando CEResta (constructor rightOp)
-        _cuandoRight (Mult  _ rightOp)  = _cuando CEMult  (constructor rightOp)
-        _cuandoRight (Div   _ rightOp)  = _cuando CEDiv   (constructor rightOp)
-        _cuandoRight _                  = False
+        _cuandoRight yo                 = _cuando (constructor yo) (constructor (snd (_operandos yo)))
+
+        -- obtenemos los operandos
+        _operandos :: Expr -> (Expr, Expr)
+        _operandos (Suma  leftOp rightOp)  = (leftOp, rightOp)
+        _operandos (Resta leftOp rightOp)  = (leftOp, rightOp)
+        _operandos (Mult  leftOp rightOp)  = (leftOp, rightOp)
+        _operandos (Div   leftOp rightOp)  = (leftOp, rightOp)
+
         -- decision general de que combinaciones de parentesis se pueden omitor (tipo de expresion del padre e hijo)
         _cuando :: ConstructorExpr -> ConstructorExpr -> Bool
         _cuando _      CEConst  = False

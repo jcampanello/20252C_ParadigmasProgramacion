@@ -34,9 +34,9 @@ data Histograma = Histograma Float Float [Int]
 -- valores en el rango y 2 casilleros adicionales para los valores fuera del rango.
 -- Requiere que @l < u@ y @n >= 1@.
 {-
-    IDEA:   lo que hay que hacer es simple. Básicamente usar el constructor haciendo la cuenta del
-            "ancho" de cada "balde" y crear ademas la lista de valores, que es una lista con n+2 ceros
-            (n siendo la cantidad de baldes y 2 adicionales para el +/- infinito)
+    IDEA:   Se usa el constructor haciendo la cuenta del "ancho" de cada "balde" y crear ademas la lista
+            de valores, que es una lista con n+2 ceros (n la cantidad de baldes indicada y 2 adicionales
+            para el +/- infinito)
 -}
 vacio :: Int -> (Float, Float) -> Histograma
 vacio n (l, u) = Histograma l  ((u - l) / fromIntegral n)  (replicate (n+2) 0)
@@ -63,14 +63,14 @@ agregar x (Histograma first size values) = Histograma first size (actualizarElem
 
 -- | Arma un histograma a partir de una lista de números reales con la cantidad de casilleros y rango indicados.
 {-
-    IDEA:   la función es muy simple. Se usa foldr para procesar la lista de números. Para cada número,
-            la función agregar (definida mas arriba) es responsable de agregar el número al histograma,
-            que es el acumulador de foldr. El histograma (acumulador) se define utilizando la función
-            vacío (definida más arriba) que inicializa el histograma con los atributos n lower/upper pasados
-            a esta función
+    IDEA:   Se usa foldr para procesar la lista de números. Para cada número, la función agregar (definida mas arriba)
+            es responsable de agregar el número al histograma, que es el acumulador de foldr. El histograma (acumulador)
+            se define utilizando la función vacío (definida más arriba) que inicializa el histograma con los atributos n
+            lower/upper pasados a esta función
 
             Se usa foldr porque en este caso, el histograma resultado es el mismo independientemente del orden
-            en que se insertan los valores
+            en que se insertan los valores y hecho así, se puede usar directamente la funcion agregar, en lugar de
+            necesitar (flip agregar) si se utilizara foldl
 -}
 histograma :: Int -> (Float, Float) -> [Float] -> Histograma
 histograma n range values = foldr agregar (vacio n range) values
@@ -110,11 +110,15 @@ casPorcentaje (Casillero _ _ _ p) = p
 casilleros :: Histograma -> [Casillero]
 casilleros (Histograma first size values) = zipWith4 Casillero rangosInicio rangosFin values porcentajes
     where
+        -- cantidades de baldes y de baldes no borde
         nroTotalBaldes = length values
         nroBaldes = nroTotalBaldes - 2
+        -- limites de n-1 baldes calculados con el rango
         limitesBaldes = [ first + (size * fromIntegral nro) | nro <- [0 .. nroBaldes] ]
+        -- relacionadas con el porcentaje de cada balde del histograma
+        cantTotalValores = fromIntegral (sum values)
+        porcentajeBalde cantidad = if cantTotalValores == 0 then 0::Float else (cantidad / cantTotalValores) * 100.0
+        -- rangos de inicio y fin de los casilleros
         rangosInicio = infinitoNegativo : limitesBaldes
         rangosFin = limitesBaldes ++ [infinitoPositivo]
-        cantTotalValores = fromIntegral (sum values)
-        porcentajes = map (percentage . fromIntegral) values
-        percentage cantidad = if cantTotalValores == 0 then 0::Float else (cantidad / cantTotalValores) * 100.0
+        porcentajes = map (porcentajeBalde . fromIntegral) values
