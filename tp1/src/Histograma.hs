@@ -46,19 +46,19 @@ vacio n (l, u) = Histograma l  ((u - l) / fromIntegral n)  (replicate (n+2) 0)
 {-
     IDEA:   identificar el "balde" en el cual deberia caer el valor (-Inf,0..n,+Inf) y utilizar la función
             actualizarElem, pasando (+1) como función de actualizacion.
-            Para esto, se utiliza una funcion local bucketIndex, que identifica el número de "balde" comparando
+            Para esto, se utiliza una funcion local indiceBalde, que identifica el número de "balde" comparando
             el valor a agregar (x) contra el límite inferior y superior de los baldes definidos (para ir a
             -Inf o +Inf) y sino, con una cuenta identifica el número de balde a usar
 -}
 agregar :: Float -> Histograma -> Histograma
-agregar x (Histograma first size values) = Histograma first size (actualizarElem bucketIndex (+1) values)
+agregar x (Histograma inicio anchoBalde valores) = Histograma inicio anchoBalde (actualizarElem indiceBalde (+1) valores)
     where
-        bucketCount = length (drop 2 values)
-        upperLimit = first + size * fromIntegral bucketCount
-        bucketIndex
-            | x < first         = 0
-            | x >= upperLimit   = bucketCount + 1
-            | otherwise         = 1 + floor ((x - first) / size)
+        cantidadBaldes = length (drop 2 valores)
+        limiteSuperior = inicio + anchoBalde * fromIntegral cantidadBaldes
+        indiceBalde
+            | x < inicio            = 0
+            | x >= limiteSuperior   = cantidadBaldes + 1
+            | otherwise             = 1 + floor ((x - inicio) / anchoBalde)
 
 
 -- | Arma un histograma a partir de una lista de números reales con la cantidad de casilleros y rango indicados.
@@ -73,7 +73,7 @@ agregar x (Histograma first size values) = Histograma first size (actualizarElem
             necesitar (flip agregar) si se utilizara foldl
 -}
 histograma :: Int -> (Float, Float) -> [Float] -> Histograma
-histograma n range values = foldr agregar (vacio n range) values
+histograma n range valores = foldr agregar (vacio n range) valores
 
 
 -- | Un `Casillero` representa un casillero del histograma con sus límites, cantidad y porcentaje.
@@ -108,17 +108,17 @@ casPorcentaje (Casillero _ _ _ p) = p
             rango de fin al final)
 -}
 casilleros :: Histograma -> [Casillero]
-casilleros (Histograma first size values) = zipWith4 Casillero rangosInicio rangosFin values porcentajes
+casilleros (Histograma inicio anchoBalde valores) = zipWith4 Casillero rangosInicio rangosFin valores porcentajes
     where
         -- cantidades de baldes y de baldes no borde
-        nroTotalBaldes = length values
+        nroTotalBaldes = length valores
         nroBaldes = nroTotalBaldes - 2
         -- limites de n-1 baldes calculados con el rango
-        limitesBaldes = [ first + (size * fromIntegral nro) | nro <- [0 .. nroBaldes] ]
+        limitesBaldes = [ inicio + (anchoBalde * fromIntegral nro) | nro <- [0 .. nroBaldes] ]
         -- relacionadas con el porcentaje de cada balde del histograma
-        cantTotalValores = fromIntegral (sum values)
+        cantTotalValores = fromIntegral (sum valores)
         porcentajeBalde cantidad = if cantTotalValores == 0 then 0::Float else (cantidad / cantTotalValores) * 100.0
         -- rangos de inicio y fin de los casilleros
         rangosInicio = infinitoNegativo : limitesBaldes
         rangosFin = limitesBaldes ++ [infinitoPositivo]
-        porcentajes = map (porcentajeBalde . fromIntegral) values
+        porcentajes = map (porcentajeBalde . fromIntegral) valores

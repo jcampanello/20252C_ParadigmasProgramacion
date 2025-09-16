@@ -39,12 +39,12 @@ recrExpr fConst fRango fSuma fResta fMult fDiv expr =
     case expr of
         Const f             -> fConst f expr
         Rango s e           -> fRango s e expr
-        Suma expr1 expr2    -> fSuma  (recurse expr1) (recurse expr2) expr
-        Resta expr1 expr2   -> fResta (recurse expr1) (recurse expr2) expr
-        Mult expr1 expr2    -> fMult  (recurse expr1) (recurse expr2) expr
-        Div expr1 expr2     -> fDiv   (recurse expr1) (recurse expr2) expr
+        Suma expr1 expr2    -> fSuma  (recursion expr1) (recursion expr2) expr
+        Resta expr1 expr2   -> fResta (recursion expr1) (recursion expr2) expr
+        Mult expr1 expr2    -> fMult  (recursion expr1) (recursion expr2) expr
+        Div expr1 expr2     -> fDiv   (recursion expr1) (recursion expr2) expr
     where
-        recurse e = recrExpr fConst fRango fSuma fResta fMult fDiv e
+        recursion e = recrExpr fConst fRango fSuma fResta fMult fDiv e
 
 -- | @recrExpr fConst fRango fSuma fResta fMult fDiv expr@ procesa @expr@ utilizando el esquema de Recursión Estructural,
 -- donde @fConst@, @fRango@, @fSuma@, @fResta@, @fMult@ y @fDiv@ son las funciones específicas para procesar cada
@@ -58,12 +58,12 @@ foldExpr fConst fRango fSuma fResta fMult fDiv expr =
     case expr of
         Const f             -> fConst f
         Rango s e           -> fRango s e
-        Suma expr1 expr2    -> fSuma  (recurse expr1) (recurse expr2)
-        Resta expr1 expr2   -> fResta (recurse expr1) (recurse expr2)
-        Mult expr1 expr2    -> fMult  (recurse expr1) (recurse expr2)
-        Div expr1 expr2     -> fDiv   (recurse expr1) (recurse expr2)
+        Suma expr1 expr2    -> fSuma  (recursion expr1) (recursion expr2)
+        Resta expr1 expr2   -> fResta (recursion expr1) (recursion expr2)
+        Mult expr1 expr2    -> fMult  (recursion expr1) (recursion expr2)
+        Div expr1 expr2     -> fDiv   (recursion expr1) (recursion expr2)
     where
-        recurse e = foldExpr fConst fRango fSuma fResta fMult fDiv e
+        recursion e = foldExpr fConst fRango fSuma fResta fMult fDiv e
 
 
 -- | Evaluar expresiones dado un generador de números aleatorios
@@ -95,10 +95,10 @@ eval expr = foldExpr fConst fRango fSuma fResta fMult fDiv expr
         _operDiv l r = if r == 0 then if l < 0 then infinitoNegativo else infinitoPositivo else l / r
         -- procesamos operaciones binarias
         _binOper :: (Float -> Float -> Float) -> G Float -> G Float -> G Float
-        _binOper op leftOp rightOp gen = (op leftVal rightVal, genR)
+        _binOper op opLeft opDer gen = (op valorIzq valorDer, genDer)
             where
-                (leftVal, genL)  = leftOp gen
-                (rightVal, genR) = rightOp genL
+                (valorIzq, genIzq)  = opLeft gen
+                (valorDer, genDer) = opDer genIzq
 
 
 
@@ -152,8 +152,8 @@ evalHistograma m n expr = armarHistograma m n (eval expr)
                   función interna binOper
             La función binOper recibe el separador (string, ej " + ") a usar, las expresiones correspondientes a los hijos
             y la propia expresión (denotada "yo"). Con esto, se usa maybeParen para representar el caso de agregar o no
-            paréntesis a cada subexpresión. Para decidir, se usan funciones locales (_cuandoLeft y _cuandoRight) que
-            observan padre (yo) e hijo (leftOp o rightOp) y una función auxiliar que decide cuando no se requieren
+            paréntesis a cada subexpresión. Para decidir, se usan funciones locales (_cuandoIzq y _cuandoDer) que
+            observan padre (yo) e hijo (opIzq o opDer) y una función auxiliar que decide cuando no se requieren
             paréntesis
 -}
 mostrar :: Expr -> String
@@ -170,20 +170,20 @@ mostrar expr = recrExpr fConst fRango fSuma fResta fMult fDiv expr
 
         -- resolucion general para operadores binarios
         binOper :: String -> String -> String -> Expr -> String
-        binOper sep expr1 expr2 yo = maybeParen (_cuandoLeft yo) expr1 ++ sep ++ maybeParen (_cuandoRight yo) expr2
+        binOper sep expr1 expr2 yo = maybeParen (_cuandoIzq yo) expr1 ++ sep ++ maybeParen (_cuandoDer yo) expr2
 
         -- decidimos cuando no hacen falta parentesis (para el operador derecho e izquierdo)
-        _cuandoLeft :: Expr -> Bool
-        _cuandoLeft yo                  = _cuando (constructor yo) (constructor (fst (_operandos yo)))
-        _cuandoRight :: Expr -> Bool
-        _cuandoRight yo                 = _cuando (constructor yo) (constructor (snd (_operandos yo)))
+        _cuandoIzq :: Expr -> Bool
+        _cuandoIzq yo                   = _cuando (constructor yo) (constructor (fst (_operandos yo)))
+        _cuandoDer :: Expr -> Bool
+        _cuandoDer yo                   = _cuando (constructor yo) (constructor (snd (_operandos yo)))
 
         -- obtenemos los operandos
         _operandos :: Expr -> (Expr, Expr)
-        _operandos (Suma  leftOp rightOp)  = (leftOp, rightOp)
-        _operandos (Resta leftOp rightOp)  = (leftOp, rightOp)
-        _operandos (Mult  leftOp rightOp)  = (leftOp, rightOp)
-        _operandos (Div   leftOp rightOp)  = (leftOp, rightOp)
+        _operandos (Suma  opIzq opDer)  = (opIzq, opDer)
+        _operandos (Resta opIzq opDer)  = (opIzq, opDer)
+        _operandos (Mult  opIzq opDer)  = (opIzq, opDer)
+        _operandos (Div   opIzq opDer)  = (opIzq, opDer)
 
         -- decision general de que combinaciones de parentesis se pueden omitor (tipo de expresion del padre e hijo)
         _cuando :: ConstructorExpr -> ConstructorExpr -> Bool
