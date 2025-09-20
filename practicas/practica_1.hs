@@ -416,18 +416,42 @@ trasponer [ [1,2,3], [4,5,6], [7,8,9]]
 -- 9.I
 -- Definir y dar el tipo del esquema de recursión foldNat sobre los naturales. Utilizar el tipo Integer de Haskell (la funcion
 -- va a estar definida solo para los enteros mayores o iguales que 0).
+--
+-- Operar sobre Integer, desde N hacia 0. Solo considerar enteros positivos y el cero
+--
+-- VAMOS A LLAMAR A LA FUNCION foldIntegerNat
 
--- data Nat = Zero | Succ Nat
+foldIntegerNat :: (Integer -> a) -> (Integer -> a -> a) -> Integer -> a
+foldIntegerNat foldZ foldN n
+    | n < 0         = error "N no puede ser negativo"
+    | otherwise     = _foldIntegerNat foldZ foldN n
+    where
+        _foldIntegerNat :: (Integer -> a) -> (Integer -> a -> a) -> Integer -> a
+        _foldIntegerNat foldZ foldN 0 = foldZ 0
+        _foldIntegerNat foldZ foldN n = foldN n (_foldIntegerNat foldZ foldN (n-1))
 
--- PREGUNTAR: no se entiende la solicitud
-
-
+{-
+foldIntegerNat (const 0) (+) 1      = 1
+foldIntegerNat (const 1) (*) 1      = 1
+foldIntegerNat (const 1) (*) 4      = 24
+foldIntegerNat (const 1) (*) 5      = 120
+-}
 
 
 --------------------
 -- 9.II
--- Utilizando foldNat, definir la funcion potencia.
+-- Utilizando foldIngegerNat, definir la funcion potencia.
 
+powerIntegerNat :: Integer -> Integer -> Integer
+powerIntegerNat base = foldIntegerNat (const 1) (\l r -> base * r)
+
+{-
+powerIntegerNat 2 4       = 16
+powerIntegerNat 2 32      = 4294967296
+powerIntegerNat 2 10      = 1024
+powerIntegerNat 2 0       = 1
+powerIntegerNat 2 1       = 2
+-}
 
 
 
@@ -660,6 +684,394 @@ espejoAB = foldAB Nil (\i r d -> Bin d r i)
 -- independientemente del contenido de sus nodos.
 -- Pista: usar evaluación parcial y recordar el ejercicio 7.
 
+mismaEstructura :: AB a -> AB b -> Bool
+mismaEstructura expr1 = foldAB checkNil checkBin expr1
+    where
+        -- Nil and Bin checkers
+        checkNil = \ expr2 -> isNil expr2
+        checkBin checkLeft _ checkRight = \ expr2 -> case expr2 of
+                                                Nil             -> False
+                                                (Bin l2 _ r2)   -> checkLeft l2 && checkRight r2
+        -- checks if the Constructor is Nil
+        isNil :: AB b -> Bool
+        isNil Nil = True
+        isNil _ = False
+        -- checks if the Constructor is Nin
+        isBin :: AB b -> Bool
+        isBin (Bin _ _ _) = True
+        isBin _ = False
+
+{-
+mismaEstructura (Bin (Bin (Bin Nil 6 Nil) 9 (Bin (Bin Nil 11 Nil) 12 (Bin Nil 14 Nil)) ) 17 (Bin (Nil) 19 (Nil))) (Bin (Bin (Bin Nil 'z' Nil) 'j' (Bin (Bin Nil 'a' Nil) 'b' (Bin Nil 'c' Nil)) ) 'd' (Bin (Nil) 'e' (Nil)))
+-}
+
+
+---------------------------------------
+-- EJERCICIO 14
+--
+-- Se desea modelar en Haskell los arboles con informacion en las hojas (y solo en ellas). Para esto introduciremos el siguiente tipo:
+--
+--      data AIH a = Hoja a | Bin (AIH a) (AIH a)
+--
+
+data AIH a = AIHoja a | AIBin (AIH a) (AIH a)
+    deriving (Show)
+
+--------------------
+-- 14.I
+-- Definir el esquema de recursion estructural foldAIH y dar su tipo. Por tratarse del primer esquema de recursipn que tenemos para
+-- este tipo, se permite usar recursion explicita.
+
+foldAIH :: (a -> b) -> (b -> b -> b) -> AIH a -> b
+foldAIH fHoja fBin (AIHoja a)           = fHoja a
+foldAIH fHoja fBin (AIBin left right)   = fBin (recurse left) (recurse right)
+    where
+        recurse branch                  = foldAIH fHoja fBin branch
+
+
+--------------------
+-- 14.I
+-- Escribir las funciones
+-- altura :: AIH a -> Integer
+-- tamaño :: AIH a -> Integer
+--
+-- Considerar que la altura de una hoja es 1 y el tamaño de un AIH es su cantidad de hojas.
+--
+
+altura :: AIH a -> Integer
+altura = foldAIH (const 1) (\l r -> 1 + max l r)
+
+tamaño :: AIH a -> Integer
+tamaño = foldAIH (const 1) (+)
+
+
+{-
+
+sampleAIH = AIBin (AIHoja 14) (AIBin (AIBin (AIBin (AIBin (AIHoja (-2)) (AIHoja 7)) (AIHoja 93)) (AIBin (AIHoja 4) (AIHoja 1024))) (AIBin (AIHoja 3) (AIBin (AIHoja 4) (AIHoja 9)) ) )
+
+altura sampleAIH -> 6
+tamaño sampleAIH -> 9
+
+-}
+
+
+
+---------------------------------------
+-- EJERCICIO 15
+--
+
+
+--------------------
+-- 15.I
+-- Definir el tipo RoseTree de arboles no vacios, con una cantidad indeterminada de hijos para cada nodo.
+--
+
+data RoseTree a = RoseNode a [ RoseTree a ]
+    deriving (Show)
+
+
+--------------------
+-- 15.II
+-- Escribir el esquema de recursion estructural para RoseTree. Importante escribir primero su tipo.
+
+foldRoseTree :: (a -> [b] -> b) -> RoseTree a -> b
+foldRoseTree fNode (RoseNode value nodes) = fNode value (map (foldRoseTree fNode) nodes)
+
+
+
+--------------------
+-- 15.III
+-- Usando el esquema definido, escribir las siguientes funciones:
+
+sampleRoseTree = RoseNode 5 [ RoseNode 7 [ RoseNode 29 [] ], RoseNode 35 [ RoseNode 93 [ RoseNode 1008 [], RoseNode 1024 [ RoseNode 1025 [ ] ] ] ], RoseNode 1048 [] ]
+
+--------------------
+-- 15.III.a
+-- hojas, que dado un RoseTree, devuelva una lista con sus hojas ordenadas de izquierda a derecha, segun su aparicion en el RoseTree.
+--
+
+hojasRoseTree :: RoseTree a -> [a]
+hojasRoseTree = foldRoseTree listarHojas
+    where
+        listarHojas :: a -> [[a]] -> [a]
+        listarHojas a hojas = a : concat hojas
+
+
+-- ejercicio de la clase
+ramasRoseTree :: RoseTree a -> [[a]]
+ramasRoseTree = foldRoseTree (\x rec -> if null rec 
+                                    then [[x]]
+                                    else map (x:) (concat rec))
+
+
+
+--------------------
+-- 15.III.b
+-- distancias, que dado un RoseTree, devuelva las distancias de su raiz a cada una de sus hojas.
+--
+
+
+distanciasRoseTree :: RoseTree a -> [Int]
+distanciasRoseTree = foldRoseTree medirHojas
+    where
+        medirHojas :: a -> [[Int]] -> [Int]
+        medirHojas a hojas = 0 : map (+1) (concat hojas)
+
+
+
+--------------------
+-- 15.III.c
+-- altura, que devuelve la altura de un RoseTree (la cantidad de nodos de la rama mas larga). Si el RoseTree es una hoja, se considera
+-- que su altura es 1.
+--
+
+alturaRoseTree :: RoseTree a -> Int
+alturaRoseTree = foldRoseTree medirAltura
+    where
+        medirAltura :: a -> [Int] -> Int
+        medirAltura a hojas = 1 + maximum (0 : hojas)
+
+
+
+
+
+---------------------------------------
+-- EJERCICIO 16
+--
+-- Se desea representar conjuntos mediante Hashing abierto (chain addressing). El Hashing abierto consta de dos funciones: una funcion
+-- de Hash, que dado un elemento devuelve un valor entero (el cual se espera que no se repita con frecuencia), y una tabla de Hash,
+-- que dado un numero entero devuelve los elementos del conjunto a los que la funcion de Hash asigno dicho numero (es decir, la
+-- preimagen de la funcion de Hash para ese numero).
+--
+-- Por contexto de uso, vamos a suponer que la tabla de Hash es una funcion total, que devuelve listas vacías para los numeros que no
+-- corresponden a elementos del conjunto. Este es un invariante que debera preservarse en todas las funciones que devuelvan conjuntos.
+--
+-- Los representaremos en Haskell de la siguiente manera:
+--
+
+data HashSet a = Hash (a -> Integer) (Integer -> [a])
+
+
+--
+-- Definir las siguientes funciones:
+
+--------------------
+-- 16.I
+--
+-- vacio :: (a -> Integer) -> HashSet a, que devuelve un conjunto vacio con la funcion de Hash indicada.
+
+hashSetVacio :: (a -> Integer) -> HashSet a
+hashSetVacio hash = Hash hash (\_ -> [])
+
+
+--------------------
+-- 16.II
+--
+-- pertenece :: Eq a => a -> HashSet a -> Bool, que indica si un elemento pertenece a un conjunto. Es decir, si se encuentra en la
+-- lista obtenida en la tabla de Hash para el numero correspondiente a la funcion de Hash del elemento.
+--
+-- Por ejemplo:
+--
+-- hashSetPertenece 5 $ hashSetAgregar 1 $ hashSetAgregar 2 $ hashSetAgregar 1 $ hashSetVacio (flip mod 5) devuelve False
+-- hashSetPertenece 2 $ hashSetAgregar 1 $ hashSetAgregar 2 $ hashSetAgregar 1 $ hashSetVacio (flip mod 5) devuelve True
+
+
+hashSetPertenece :: Eq a => a -> HashSet a -> Bool
+hashSetPertenece e (Hash hash buckets) = elem e (buckets (hash e))
+
+
+
+--------------------
+-- 16.III
+--
+-- agregar::Eq a => a -> HashSet a -> HashSet a, que agrega un elemento a un conjunto. Si el elemento ya estaba en el conjunto, se
+-- debe devolver el conjunto sin modificaciones.
+
+hashSetAgregar :: Eq a => a -> HashSet a -> HashSet a
+hashSetAgregar e (Hash hash buckets) = Hash hash (agregaSiNoExiste e)
+    where
+        bucket = hash e
+        bucketContents = buckets bucket
+        agregaSiNoExiste e = if elem e bucketContents
+                                then buckets
+                                else (\b -> if b == bucket then e:bucketContents else buckets b)
+
+
+
+--------------------
+-- 16.IV
+--
+-- interseccion :: Eq a => HashSet a -> HashSet a -> HashSet a que, dados dos conjuntos, devuelve un conjunto con la misma funcion
+-- de Hash del primero y con los elementos que pertenecen a ambos conjuntos a la vez.
+
+
+hashSetInterseccion :: Eq a => HashSet a -> HashSet a -> HashSet a
+hashSetInterseccion (Hash hash1 buckets1) (Hash hash2 buckets2) = Hash hash1 (\b -> (buckets1 b) `intersect` (buckets2 b))
+
+
+-- hs1 = hashSetAgregar 1 $ hashSetAgregar 2 $ hashSetAgregar 3 $ hashSetVacio (flip mod 5)
+-- hs2 = hashSetAgregar 1 $ hashSetAgregar 3 $ hashSetAgregar 4 $ hashSetVacio (flip mod 5)
+-- hs3 = hashSetInterseccion hs1 hs2
+-- hashSetPertenece 1 hs3
+-- hashSetPertenece 2 hs3
+-- hashSetPertenece 3 hs3
+-- hashSetPertenece 4 hs3
+-- hashSetPertenece 5 hs3
+
+
+
+--------------------
+-- 16.V
+--
+-- foldr1 (no relacionada con los conjuntos). Dar el tipo y definir la funcion foldr1 para listas sin usar recursion explicita,
+-- recurriendo a alguno de los esquemas de recursion conocidos.
+-- Se recomienda usar la función error :: String -> a para el caso de la lista vacia.
+
+foldr1''' :: (a -> a -> a) -> [a] -> a
+foldr1''' _ [] = error "La lista no puede ser vacia"
+foldr1''' f xs = foldr f (last xs) (init xs)
+
+-- foldr1''' min [ -1, 0, 1, 2, 3, 4 ]
+-- foldr1''' min []
+
+
+
+
+
+
+---------------------------------------
+-- EJERCICIO 17
+--
+-- Cual es el valor de esta expresion?
+--
+-- [ x | x <- [1..3], y <- [x..3], (x + y) mod 3 == 0 ]
+--
+
+-- RESPUESTA: [ 1, 3 ]
+
+
+
+
+---------------------------------------
+-- EJERCICIO 18
+--
+-- Definir la lista infinita paresDeNat::[(Int,Int)], que contenga todos los pares de numeros naturales: (0,0), (0,1), (1,0), etc.
+--
+
+paresDeNat :: [ (Int, Int) ]
+paresDeNat = [ (x,y) | x <- [0..], y <- [0..x]]
+
+
+
+---------------------------------------
+-- EJERCICIO 19
+--
+-- Una tripla pitagorica es una tripla (a, b, c) de enteros positivos tal que a2 + b2 = c2.
+-- La siguiente expresion intenta ser una definicion de una lista (infinita) de triplas pitagoricas:
+--
+-- pitagoricas :: [(Integer, Integer, Integer)]
+-- pitagoricas = [(a, b, c) | a <- [1..], b <-[1..], c <- [1..], a^2 + b^2 == c^2]
+--
+-- Explicar por que esta definición no es util. Dar una definición mejor.
+
+pitagoricas :: [(Integer, Integer, Integer)]
+pitagoricas = [(a, b, c) | a <- [1..], b <-[1..], c <- [1..], a^2 + b^2 == c^2]
+
+-- la definicion no es util porque para el primer par de a,b va a intentar con todos los posibles (infinitos) C antes de seguir
+
+pitagoricas' :: [(Integer, Integer, Integer)]
+pitagoricas' = [ (a, b, c) | c <- [1..], a <- [1..c], b <- [1..c], c^2 == a^2 + b^2 ]
+
+-- esta definicion es mejor porque itera los C (el lado mas largo) y tiene una cantidad acotada de a y b que probar, así que retorna
+-- valores con mayor frecuencia
+
+
+
+
+---------------------------------------
+-- EJERCICIO 20
+--
+-- Escribir la funcion listasQueSuman :: Int -> [[Int]] que, dado un numero natural n, devuelve todas las listas de enteros positivos
+-- (es decir, mayores o iguales que 1) cuya suma sea n. Para este ejercicio se permite usar recursion explicita. Pensar por que la
+-- recurson utilizada no es estructural. (Este ejercicio no es de generacion infinita, pero puede ser util para otras funciones que
+-- generen listas infinitas de listas).
+--
+
+
+listasQueSuman :: Int -> [[Int]]
+listasQueSuman 0 = [[]]
+listasQueSuman n | n > 0 = [x : xs | x <- [1..n], xs <- listasQueSuman (n-x)]
+
+
+-- HECHOS PENSANDO QUE ERAN LISTAS CON ELEMENTOS ASCENDENTES SOLAMENTE
+
+listasQueSuman' :: Int -> [[Int]]
+listasQueSuman' n = [ parte | parte <- partes [1..n], n == sum parte ]
+    where
+        partes :: [a] -> [[a]]
+        partes xs = recr (\x xs acc -> map (x:) (partes xs) ++ acc) [[]] xs
+
+
+listasQueSuman'' :: Int -> [[Int]]
+listasQueSuman'' n = [ lista | lista <- generarListas n ]
+    where
+        generarListas :: Int -> [[Int]]
+        generarListas n = filter (\l -> n == (sum l)) (partes [1..n])
+        partes :: [a] -> [[a]]
+        partes xs = recr (\x xs acc -> acc ++ map (x:) (partes xs)) [[]] xs
+
+
+
+
+---------------------------------------
+-- EJERCICIO 21
+--
+-- Definir en Haskell una lista que contenga todas las listas finitas de enteros positivos (esto es, con elementos
+-- mayores o iguales que 1).
+
+todasLasListas = [] : partesDe 1
+    where
+        partesDe n = (filter (\l -> if null l || maximum l < n then False else True) (partes [1..n]) ) ++ partesDe (n+1)
+        partes :: [a] -> [[a]]
+        partes xs = recr (\x xs acc -> acc ++ map (x:) (partes xs)) [[]] xs
+
+
+
+
+---------------------------------------
+-- EJERCICIO 22
+--
+-- Dado el tipo de datos AIH a definido en el ejercicio 14:
+--
+
+-- data AIH a = AIHoja a | AIBin (AIH a) (AIH a)
+--    deriving (Show)
+
+
+--------------------
+-- 22.a
+-- Definir la lista (infinita) de todos los AIH cuyas hojas tienen tipo (). Se recomienda definir una función auxiliar. Para este
+-- ejercicio se permite utilizar recursión explicita.
+
+{-
+Hoja -> Bin Hoja Hoja -> Bin (Bin Hoja Hoja) Hoja -> Bin Hoja (Bin Hoja Hoja) -> Bin (Bin Hoja Hoja) (Bin Hoja Hoja)
+
+
+todosLosAIH = generarTodos [AIHHoja ()]
+    where
+        generarTodos :: [AIHHoja ()] -> [[AIHHoja ()]]
+        generarTodos lista = nuevaLista ++ generarTodos nuevaLista
+        where
+            nuevaLista = expandOneLevel lista
+            expandOneLevel :: [[AIHHoja ()]] -> [[AIHHoja ()]]
+            expandOneLevel lista = 
+
+-}
+
+
+--------------------
+-- 22.b
+-- Explicar por que la recursion utilizada en el punto a) no es estructural.
 
 
 
@@ -684,10 +1096,15 @@ foldl f ac (x : xs) = foldl f (f ac x) xs
 
 
 
-
-
-
-
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+--
+-- PENDIENTE
+--
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
 
 
 
