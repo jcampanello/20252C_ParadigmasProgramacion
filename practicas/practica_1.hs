@@ -1029,7 +1029,11 @@ listasQueSuman'' n = [ lista | lista <- generarListas n ]
 -- Definir en Haskell una lista que contenga todas las listas finitas de enteros positivos (esto es, con elementos
 -- mayores o iguales que 1).
 
-todasLasListas = [] : partesDe 1
+
+todasLasListas = concatMap listasQueSuman [1..]
+
+
+todasLasListas' = [] : partesDe 1
     where
         partesDe n = (filter (\l -> if null l || maximum l < n then False else True) (partes [1..n]) ) ++ partesDe (n+1)
         partes :: [a] -> [[a]]
@@ -1044,6 +1048,7 @@ todasLasListas = [] : partesDe 1
 -- Dado el tipo de datos AIH a definido en el ejercicio 14:
 --
 
+-- definido para el ejercicio 14
 -- data AIH a = AIHoja a | AIBin (AIH a) (AIH a)
 --    deriving (Show)
 
@@ -1052,6 +1057,12 @@ todasLasListas = [] : partesDe 1
 -- 22.a
 -- Definir la lista (infinita) de todos los AIH cuyas hojas tienen tipo (). Se recomienda definir una función auxiliar. Para este
 -- ejercicio se permite utilizar recursión explicita.
+
+
+cantHojasAIH :: Int -> AIH ()
+cantHojasAIH 0 = error "No se permiten arboles nulos"
+cantHojasAIH 1 = AIHoja ()
+cantHojasAIH n = error "No implementado"
 
 {-
 Hoja -> Bin Hoja Hoja -> Bin (Bin Hoja Hoja) Hoja -> Bin Hoja (Bin Hoja Hoja) -> Bin (Bin Hoja Hoja) (Bin Hoja Hoja)
