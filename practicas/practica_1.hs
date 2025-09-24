@@ -1059,32 +1059,27 @@ todasLasListas' = [] : partesDe 1
 -- ejercicio se permite utilizar recursión explicita.
 
 
-cantHojasAIH :: Int -> AIH ()
-cantHojasAIH 0 = error "No se permiten arboles nulos"
-cantHojasAIH 1 = AIHoja ()
-cantHojasAIH n = error "No implementado"
-
-{-
-Hoja -> Bin Hoja Hoja -> Bin (Bin Hoja Hoja) Hoja -> Bin Hoja (Bin Hoja Hoja) -> Bin (Bin Hoja Hoja) (Bin Hoja Hoja)
-
-
-todosLosAIH = generarTodos [AIHHoja ()]
+todosLosAIH :: [AIH ()]
+todosLosAIH = concatMap generar [0..]
     where
-        generarTodos :: [AIHHoja ()] -> [[AIHHoja ()]]
-        generarTodos lista = nuevaLista ++ generarTodos nuevaLista
-        where
-            nuevaLista = expandOneLevel lista
-            expandOneLevel :: [[AIHHoja ()]] -> [[AIHHoja ()]]
-            expandOneLevel lista = 
-
--}
+        -- genera todos los arboles de N nodos
+        generar :: Int -> [AIH ()]
+        generar 0 = [ AIHoja () ]
+        generar n = concatMap subarboles [ (a, n - 1 - a) | a <- [0..n-1] ]
+        -- genera subarboles de a y b nodos y los une (producto cartesiano)
+        subarboles :: (Int, Int) -> [AIH ()]
+        subarboles (a, b) = [ AIBin a b | a <- generar a, b <- generar b ]
 
 
 --------------------
 -- 22.b
 -- Explicar por que la recursion utilizada en el punto a) no es estructural.
 
-
+-- No es recursion estructural porque, en principio no hay estructura que recorrer, sino que la estructura se arma.
+-- Por otro lado, en la funcion generar, si se cumple el caso 0 con una constante, pero el caso genérico no habla de
+-- la propia funcion (generar), sino que utiliza un sub-funcion, que luego usa la propia generar pero sobre partes
+-- separadas (las posibles subdivisiones de N-1, cantidad de nodos). Esto tiene una similitud con Fibonacci que es
+-- recursion global
 
 
 
@@ -1102,22 +1097,5 @@ foldl               :: (b -> a -> b) -> b -> [a] -> b
 foldl f ac []       = ac
 foldl f ac (x : xs) = foldl f (f ac x) xs
 -}
-
-
-
-
-
----------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------
---
--- PENDIENTE
---
----------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------
-
-
-
 
 
