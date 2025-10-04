@@ -1,0 +1,99 @@
+------------------------------ BASE
+
+{NT}        not True = False                |             id :: a -> a          |             const :: (a -> b -> a)
+{NF}        not False = True                | {ID}        id x = x              | {CONST}     const = (\x -> \_ -> x)
+
+            fst :: (a, b) -> a              |             snd :: (a, b) -> b    |             (.) :: (b -> c) -> (a -> b) -> (a -> c)
+{FST}       fst (x, _) = x                  | {SND}       snd (_, y) = y        | {COMP}      (g . f) x = g (f x)
+
+            swap :: (a, b) -> (b, a)        |             flip :: (a -> b -> c) -> (b -> a -> c)
+{SWAP}      swap (x, y) = (y, x)            | {FLIP}      flip f x y = f y x
+
+{CONGR==}   ∀ f :: a -> b. ∀  x :: a. ∀  y :: a. x == y => f x == f y
+
+            curry :: ((a, b) -> c) -> (a -> b -> c)         |             uncurry :: (a -> b -> c) -> ((a, b) -> c)
+{CURRY}     curry f = (\x y -> f (x, y))                    | {UNCURRY}   uncurry f = (\(x, y) -> f x y)
+
+------------------------------ INT y Nat
+
+            sucesor :: Int -> Int
+{SUC}       sucesor n = n + 1
+
+data Nat = Zero | Suc Nat
+
+{S0}        suma Zero m = m
+{S1}        suma (Suc n) m = Suc (suma n m)
+
+------------------------------ LISTAS
+
+            foldr :: (a -> b -> b) -> b -> [a] -> b         |             foldl :: (b -> a -> b) -> b -> [a] -> b
+{FOLDR0}    foldr f z []        = z                         | {FOLDL0}    foldl f ac []       = ac
+{FOLDR1}    foldr f z (x : xs)  = f x (foldr f z xs)        | {FOLDL1}    foldl f ac (x : xs) = foldl f (f ac x) xs
+
+            recr :: (a -> [a] -> b -> b) -> b -> [a] -> b
+{RECR0}     recr f z []         = z
+{RECR1}     recr f z (x : xs)   = f x xs (recr f z xs)
+
+            map :: (a -> b) -> [a] -> [b]                   |             filter :: (a -> Bool) -> [a] -> [a]
+{MAP0}      map f []        = []                            | {FILTER0}   filter f []        = []
+{MAP1}      map f (x : xs)  = f x : map f xs                | {FILTER1}   filter f (x : xs)  = (\x -> if f x
+                                                                                                    then x : filter f xs
+                                                                                                    else filter f xs)
+
+            length :: [a] -> Int                |             suma :: Num a => [a] -> a     |             elem :: Eq a => a -> [a] -> Bool
+{LENGTH0}   length [] = 0                       | {SUMA0}     suma [] = 0                   | {ELEM0}     elem e []       = False
+{LENGTH1}   length (_ : xs) = 1 + length xs     | {SUMA1}     suma (x : xs) = x + suma xs   | {ELEM1}     elem e (x : xs) = (e == x) || elem e xs
+
+            (++) :: [a] -> [a] -> [a]           |             ceros :: [a] -> [Int]
+{++0}       []       ++ ys = ys                 | {Z0}        ceros []        = []
+{++1}       (x : xs) ++ ys = x : (xs ++ ys)     | {Z1}        ceros (_ : xs)  = 0 : ceros xs
+
+            reverse :: [a] -> [a]                     |             reverse :: [a] -> [a]
+{REVERSE0}  reverse []          = []                  | {REVERSE}   reverse = foldl (flip (:)) []
+{REVERSE1}  reverse (x : xs)    = reverse xs ++ [x]
+
+------------------------------ CONJUNTOS
+
+            vacio :: Conj a                                 |             agregar :: Eq a => a -> Conj a -> Conj a
+{CVACIO}    vacio = \ -> False                              | {CADD}      agregar x c = \e -> e == x || c e
+
+            interseccion :: Conj a -> Conj a -> Conj a      |             diferencia :: Conj a -> Conj a -> Conj a
+{CINTER}    interseccion c d = \e -> c e && d e             | {CDIFF}     diferencia c d = \e -> c e && not (d e)
+
+------------------------------ ISOMORFISMO
+
+Dos tipos de datos A y B son isomorfos si:
+
+1. Hay una función          f :: A -> B total.
+2. Hay una función          g :: B -> A total.
+3. Se puede demostrar que   g . f = id:: A -> A.
+4. Se puede demostrar que   f . g = id:: B -> B.
+
+=> A ≃ B para indicar que A y B son isomorfos
+
+
+------------------------------ PROPIEDADES UTILIZABLES
+
+∀ F :: a -> b. ∀ G :: a -> b. ∀ Y :: b. ∀ Z :: a.
+
+        F = G                   <=>     ∀ x :: a. F x = G x
+        F = \x -> Y             <=>     ∀ x :: a. F x = Y
+        (\x -> Y) Z             =β      Y   (reemplazando x por Z)
+        \x -> F x               =η      F
+
+
+
+
+
+
+-- Α α, Β β, Γ γ, Δ δ, Ε ε, Ζ ζ, Η η, Θ θ, Ι ι, Κ κ, Λ λ, Μ μ, Ν ν, Ξ ξ, Ο ο, Π π, Ρ ρ, Σ σ ς, Τ τ, Υ υ, Φ φ, Χ χ, Ψ ψ, Ω ω
+
+-- ∀ ∃
+-- ⇔ ⇒ →
+
+-- ¬ ⊥
+-- ⊕
+-- ⊢ ⊬ ⊨ ⊭
+-- ∴ ∵
+
+
