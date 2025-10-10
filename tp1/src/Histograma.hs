@@ -73,7 +73,7 @@ agregar x (Histograma inicio anchoBalde valores) = Histograma inicio anchoBalde 
             necesitar (flip agregar) si se utilizara foldl
 -}
 histograma :: Int -> (Float, Float) -> [Float] -> Histograma
-histograma n range valores = foldr agregar (vacio n range) valores
+histograma n range = foldr agregar (vacio n range)
 
 
 -- | Un `Casillero` representa un casillero del histograma con sus límites, cantidad y porcentaje.

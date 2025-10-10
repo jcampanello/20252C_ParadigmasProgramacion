@@ -43,7 +43,7 @@ testsAlinearDerecha =
       alinearDerecha 10 "incierticalc" ~?= "incierticalc",
       -- AGREGADO: rellena string vacío
       alinearDerecha 2 "" ~?= "  ",
-      -- AGREGADO: no tiene problema sin el input son blancos
+      -- AGREGADO: no tiene problema si el input son blancos
       alinearDerecha 2 "   " ~?= "   "
     ]
 
@@ -189,20 +189,20 @@ testsRecr :: Test
 testsRecr =
   let recProc = recrExpr
                   -- fConst
-                  (\ v expr -> show v)
+                  (\v -> show v)
                   -- fRange
-                  (\ s e expr -> show s ++ " ~ " ++ show e)
+                  (\s e -> show s ++ " ~ " ++ show e)
                   -- fSuma
-                  (\ l r expr -> "(" ++ l ++ " + " ++ r ++ ")")
+                  (\exprL exprR l r -> "(" ++ l ++ " + " ++ r ++ ")")
                   -- fResta
-                  (\ l r expr -> "(" ++ l ++ " - " ++ r ++ ")")
+                  (\exprL exprR l r -> "(" ++ l ++ " - " ++ r ++ ")")
                   -- fMult
-                  (\ l r expr -> "(" ++ l ++ " * " ++ r ++ ")")
+                  (\exprL exprR l r -> "(" ++ l ++ " * " ++ r ++ ")")
                   -- fDiv
-                  (\ l r expr -> "(" ++ l ++ " / " ++ r ++ ")")
+                  (\exprL exprR l r -> "(" ++ l ++ " / " ++ r ++ ")")
     in test
     [ 
-      -- usamos recursion primitiva para convertir una Expr a string
+      -- usamos recursión primitiva para convertir una Expr a string
       recProc (Const 1.0) ~?= "1.0",
       recProc (Rango (-1.7) (-0.5)) ~?= "-1.7 ~ -0.5",
       recProc (Suma (Const 1.0) (Const 2.0)) ~?= "(1.0 + 2.0)",
@@ -232,7 +232,7 @@ testsFold =
                   (\ l r -> "(" ++ l ++ " / " ++ r ++ ")")
     in test
     [ 
-      -- usamos recursion estructural para convertir una Expr a string
+      -- usamos recursión estructural para convertir una Expr a string
       foldProc (Const 1.0) ~?= "1.0",
       foldProc (Rango (-1.7) (-0.5)) ~?= "-1.7 ~ -0.5",
       foldProc (Suma (Const 1.0) (Const 2.0)) ~?= "(1.0 + 2.0)",
@@ -275,7 +275,7 @@ testsEval =
       fst (eval (Div (Const 10) (Const 5)) genFijo) ~?= 2,
       fst (eval (Div (Const 10) (Const 3)) genFijo) ~?= 3.3333333,
       fst (eval (Div (Const 10) (Const 100)) genFijo) ~?= 0.1,
-      -- test expresion compleja
+      -- test expresión compleja
       fst (eval (Div (Mult (Const 70) (Resta (Const 8) (Suma (Const 4) (Const 2)))) (Rango 99 101)) genFijo) ~?= 1.4
     ]
 

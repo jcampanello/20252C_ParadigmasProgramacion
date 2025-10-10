@@ -12,6 +12,7 @@ where
 import Util ( infinitoNegativo, infinitoPositivo )
 import Generador
 import Histograma
+import Text.Read (Lexeme(String))
 
 -- | Expresiones aritméticas con rangos
 data Expr = Const Float
@@ -29,28 +30,30 @@ data Expr = Const Float
 -- un parámetro de tipo Expr, que es la propia expresión que está siendo evaluada (esto es en general de importancia
 -- para las funciones @fSuma@, @fResta@, @fMult@ y @fDiv@)
 {-
-    IDEA:   se implementa el esquema de Recursión Primitiva para el cual se requieren N funciones (una por cada constructor
-            disponible en el tipo Expr). Estas funciones toman no solo los atributos de dicho constructor, sino que además
-            toman la propia expr que está siendo evaluada, dado que la recursión primitiva permite "ver" el resto de la
-            información en cada punto de procesamiento
+    IDEA:   se implementa el esquema de recursión primitiva para el cual se requieren n funciones (una por cada constructor
+            disponible en el tipo Expr). Estas funciones toman:
+            1:  los mismos atributos del constructor si no son constructores recursivos y retornan el resultado de evaluar
+                los mismos
+            2: los atributos del constructor y los resultados de evaluar recursivamente cada atributo del constructor
+            Esto es porque la recursión primitiva permite "ver" el resto de la información en cada punto de procesamiento
 -}
-recrExpr :: (Float -> Expr -> a) -> (Float -> Float -> Expr -> a) -> (a -> a -> Expr -> a) -> (a -> a -> Expr -> a) -> (a -> a -> Expr -> a) -> (a -> a -> Expr -> a) -> Expr -> a
+recrExpr :: (Float -> a) -> (Float -> Float -> a) -> (Expr -> Expr -> a -> a -> a) -> (Expr -> Expr -> a -> a -> a) -> (Expr -> Expr -> a -> a -> a) -> (Expr -> Expr -> a -> a -> a) -> Expr -> a
 recrExpr fConst fRango fSuma fResta fMult fDiv expr =
     case expr of
-        Const f             -> fConst f expr
-        Rango s e           -> fRango s e expr
-        Suma expr1 expr2    -> fSuma  (recursion expr1) (recursion expr2) expr
-        Resta expr1 expr2   -> fResta (recursion expr1) (recursion expr2) expr
-        Mult expr1 expr2    -> fMult  (recursion expr1) (recursion expr2) expr
-        Div expr1 expr2     -> fDiv   (recursion expr1) (recursion expr2) expr
+        Const f             -> fConst f
+        Rango s e           -> fRango s e
+        Suma expr1 expr2    -> fSuma  expr1 expr2 (rec expr1) (rec expr2)
+        Resta expr1 expr2   -> fResta expr1 expr2 (rec expr1) (rec expr2)
+        Mult expr1 expr2    -> fMult  expr1 expr2 (rec expr1) (rec expr2)
+        Div expr1 expr2     -> fDiv   expr1 expr2 (rec expr1) (rec expr2)
     where
-        recursion e = recrExpr fConst fRango fSuma fResta fMult fDiv e
+        rec e = recrExpr fConst fRango fSuma fResta fMult fDiv e
 
 -- | @recrExpr fConst fRango fSuma fResta fMult fDiv expr@ procesa @expr@ utilizando el esquema de Recursión Estructural,
 -- donde @fConst@, @fRango@, @fSuma@, @fResta@, @fMult@ y @fDiv@ son las funciones específicas para procesar cada
 -- constructor de Expr
 {-
-    IDEA:   se implementa el esquema de Recursión Estructural para el cual se requieren N funciones (una por cada constructor
+    IDEA:   se implementa el esquema de recursión estructural para el cual se requieren n funciones (una por cada constructor
             disponible en el tipo Expr). Estas funciones toman los atributos de dicho constructor
 -}
 foldExpr :: (Float -> a) -> (Float -> Float -> a) -> (a -> a -> a) -> (a -> a -> a) -> (a -> a -> a) -> (a -> a -> a) -> Expr -> a
@@ -58,12 +61,12 @@ foldExpr fConst fRango fSuma fResta fMult fDiv expr =
     case expr of
         Const f             -> fConst f
         Rango s e           -> fRango s e
-        Suma expr1 expr2    -> fSuma  (recursion expr1) (recursion expr2)
-        Resta expr1 expr2   -> fResta (recursion expr1) (recursion expr2)
-        Mult expr1 expr2    -> fMult  (recursion expr1) (recursion expr2)
-        Div expr1 expr2     -> fDiv   (recursion expr1) (recursion expr2)
+        Suma expr1 expr2    -> fSuma  (rec expr1) (rec expr2)
+        Resta expr1 expr2   -> fResta (rec expr1) (rec expr2)
+        Mult expr1 expr2    -> fMult  (rec expr1) (rec expr2)
+        Div expr1 expr2     -> fDiv   (rec expr1) (rec expr2)
     where
-        recursion e = foldExpr fConst fRango fSuma fResta fMult fDiv e
+        rec e = foldExpr fConst fRango fSuma fResta fMult fDiv e
 
 
 -- | Evaluar expresiones dado un generador de números aleatorios
@@ -81,7 +84,7 @@ foldExpr fConst fRango fSuma fResta fMult fDiv expr =
               satura el resultado en +/- Infinito (según el signo del dividendo)
 -}
 eval :: Expr -> G Float
-eval expr = foldExpr fConst fRango fSuma fResta fMult fDiv expr
+eval = foldExpr fConst fRango fSuma fResta fMult fDiv
     where
         -- las funciones directas en uso
         fConst f = _const f
@@ -142,56 +145,45 @@ evalHistograma m n expr = armarHistograma m n (eval expr)
 -- | Mostrar las expresiones, pero evitando algunos paréntesis innecesarios.
 -- En particular queremos evitar paréntesis en sumas y productos anidados.
 {-
-    IDEA:   La resolución utiliza recrExpr debido a que es necesario poder evaluar el nodo y sus hijos para decidir
-            cuando se debe o no presentar paréntesis (ej: padre + e hijo + => no se usan paréntesis alrededor del hijo).
-            Esto implica la necesidad de utilizar recursión primitiva, de ahí recrExpr.
+    IDEA:   La resolución utiliza recrExpr debido a que es necesario poder evaluar el tipo de los hijos para los
+            casos de constructores recursivos. Esta evaluación permite decidir en qué casos utilizar o no paréntesis.
+            (por ej: si el nodo padre es una suma y su hijo izquierdo también, entonces no se pondrán paréntesis alrededor
+            de la expresión que representa al dicho hijo).
+            Esto implica la necesidad de utilizar recursión primitiva, de ahí el uso de recrExpr.
             Respecto de la resolución, se consideran 3 tipos de casos:
                 - Const en donde simplemente se muestra el número de punto flotante
                 - Range en donde se concatenan los dos valores de punto flotante junto con "~"
-                - Operadores Binarios (Resta, Div, Suma, Mult). Estos se resuelven todos de la misma forma, utilizando una
-                  función interna binOper
-            La función binOper recibe el separador (string, ej " + ") a usar, las expresiones correspondientes a los hijos
-            y la propia expresión (denotada "yo"). Con esto, se usa maybeParen para representar el caso de agregar o no
-            paréntesis a cada subexpresión. Para decidir, se usan funciones locales (_cuandoIzq y _cuandoDer) que
-            observan padre (yo) e hijo (opIzq o opDer) y una función auxiliar que decide cuando no se requieren
-            paréntesis
+                - Operadores Binarios (Resta, Div, Suma, Mult). Estos se resuelven todos de la misma forma:
+                    - Cada operando se resuelve independientemente, decidiendo si para el tipo de nodo padre y el tipo 
+                      del nodo del hijo (left o right) es necesario utilizar paréntesis
+                    - Se concatenan la resolución de ambos operadores junto con el string que corresponde al operando
+            La función auxiliar armarOperando simplifica la implementación extrayendo código común y la decisión de
+            cuando utilizar paréntesis queda delegada a la función usarParen, que decide en función del constructor
+            del padre e hijo.
 -}
 mostrar :: Expr -> String
 mostrar expr = recrExpr fConst fRango fSuma fResta fMult fDiv expr
     where
         -- casos simples - constante y rango
-        fConst f yo            = show f
-        fRango s e yo          = show s ++ "~" ++ show e
+        fConst f                        = show f
+        fRango s e                      = show s ++ "~" ++ show e
         -- casos complejos - operadores binarios
-        fSuma   expr1 expr2 yo = binOper " + " expr1 expr2 yo
-        fResta  expr1 expr2 yo = binOper " - " expr1 expr2 yo
-        fMult   expr1 expr2 yo = binOper " * " expr1 expr2 yo
-        fDiv    expr1 expr2 yo = binOper " / " expr1 expr2 yo
+        fSuma   expr1 expr2 str1 str2   = armaOperando CESuma  expr1 str1 ++ " + " ++ armaOperando CESuma  expr2 str2
+        fResta  expr1 expr2 str1 str2   = armaOperando CEResta expr1 str1 ++ " - " ++ armaOperando CEResta expr2 str2
+        fMult   expr1 expr2 str1 str2   = armaOperando CEMult  expr1 str1 ++ " * " ++ armaOperando CEMult  expr2 str2
+        fDiv    expr1 expr2 str1 str2   = armaOperando CEDiv   expr1 str1 ++ " / " ++ armaOperando CEDiv   expr2 str2
 
-        -- resolucion general para operadores binarios
-        binOper :: String -> String -> String -> Expr -> String
-        binOper sep expr1 expr2 yo = maybeParen (_cuandoIzq yo) expr1 ++ sep ++ maybeParen (_cuandoDer yo) expr2
+        -- armamos texto para operando
+        armaOperando :: ConstructorExpr -> Expr -> String -> String
+        armaOperando cons expr str = maybeParen (usarParen cons (constructor expr)) str
 
-        -- decidimos cuando no hacen falta parentesis (para el operador derecho e izquierdo)
-        _cuandoIzq :: Expr -> Bool
-        _cuandoIzq yo                   = _cuando (constructor yo) (constructor (fst (_operandos yo)))
-        _cuandoDer :: Expr -> Bool
-        _cuandoDer yo                   = _cuando (constructor yo) (constructor (snd (_operandos yo)))
-
-        -- obtenemos los operandos
-        _operandos :: Expr -> (Expr, Expr)
-        _operandos (Suma  opIzq opDer)  = (opIzq, opDer)
-        _operandos (Resta opIzq opDer)  = (opIzq, opDer)
-        _operandos (Mult  opIzq opDer)  = (opIzq, opDer)
-        _operandos (Div   opIzq opDer)  = (opIzq, opDer)
-
-        -- decision general de que combinaciones de parentesis se pueden omitor (tipo de expresion del padre e hijo)
-        _cuando :: ConstructorExpr -> ConstructorExpr -> Bool
-        _cuando _      CEConst  = False
-        _cuando _      CERango  = False
-        _cuando CESuma CESuma   = False
-        _cuando CEMult CEMult   = False
-        _cuando _      _        = True
+        -- decidimos si se necesitan los paréntesis
+        usarParen :: ConstructorExpr -> ConstructorExpr -> Bool
+        usarParen _        CEConst = False
+        usarParen _        CERango = False
+        usarParen CESuma   CESuma  = False
+        usarParen CEMult   CEMult  = False
+        usarParen _        _       = True
 
 
 data ConstructorExpr = CEConst | CERango | CESuma | CEResta | CEMult | CEDiv
