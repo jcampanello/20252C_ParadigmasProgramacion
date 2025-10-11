@@ -12,7 +12,6 @@ where
 import Util ( infinitoNegativo, infinitoPositivo )
 import Generador
 import Histograma
-import Text.Read (Lexeme(String))
 
 -- | Expresiones aritméticas con rangos
 data Expr = Const Float
@@ -168,10 +167,14 @@ mostrar expr = recrExpr fConst fRango fSuma fResta fMult fDiv expr
         fConst f                        = show f
         fRango s e                      = show s ++ "~" ++ show e
         -- casos complejos - operadores binarios
-        fSuma   expr1 expr2 str1 str2   = armaOperando CESuma  expr1 str1 ++ " + " ++ armaOperando CESuma  expr2 str2
-        fResta  expr1 expr2 str1 str2   = armaOperando CEResta expr1 str1 ++ " - " ++ armaOperando CEResta expr2 str2
-        fMult   expr1 expr2 str1 str2   = armaOperando CEMult  expr1 str1 ++ " * " ++ armaOperando CEMult  expr2 str2
-        fDiv    expr1 expr2 str1 str2   = armaOperando CEDiv   expr1 str1 ++ " / " ++ armaOperando CEDiv   expr2 str2
+        fSuma   expr1 expr2 str1 str2   = binOp CESuma  expr1 expr2 " + " str1 str2
+        fResta  expr1 expr2 str1 str2   = binOp CEResta expr1 expr2 " - " str1 str2
+        fMult   expr1 expr2 str1 str2   = binOp CEMult  expr1 expr2 " * " str1 str2
+        fDiv    expr1 expr2 str1 str2   = binOp CEDiv   expr1 expr2 " / " str1 str2
+
+        -- armamos operador binario
+        binOp :: ConstructorExpr -> Expr -> Expr -> String -> String -> String -> String
+        binOp cons expr1 expr2 oper str1 str2 = armaOperando cons expr1 str1 ++ oper ++ armaOperando cons expr2 str2
 
         -- armamos texto para operando
         armaOperando :: ConstructorExpr -> Expr -> String -> String
