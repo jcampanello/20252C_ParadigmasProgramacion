@@ -168,7 +168,8 @@ combinarCelda(A, B, _) :- nonvar(A), nonvar(B), A \== B.
 % --------------------------------------------------------------------------------
 %
 % Ejercicio 7
-deducir1Pasada(_) :- completar("Ejercicio 7").
+%! deducir1Pasada(+NN)
+deducir1Pasada(nono(_, RS)) :- maplist(pintarObligatorias, RS).
 
 
 % Predicado dado
@@ -185,6 +186,17 @@ deducirVariasPasadas(NN) :-
 % Predicado dado
 deducirVariasPasadasCont(_, A, A). % Si VI = VF entonces no hubo más cambios y frenamos.
 deducirVariasPasadasCont(NN, A, B) :- A =\= B, deducirVariasPasadas(NN).
+
+
+
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+%
+% RESUELTO HASTA AQUI
+%
 
 
 % --------------------------------------------------------------------------------

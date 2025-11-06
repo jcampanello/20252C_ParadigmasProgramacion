@@ -179,6 +179,51 @@ test(pintarObligatorias, [nondet]) :-
         [[_, _, _, x, x, _]]).
 
 
+
+%
+% TESTS deducir1Pasada
+%
+
+test(deducir1Pasada, [nondet]) :-
+    armarNono([[2],[3],[2]], [[2],[3],[2]], NN), NN=nono(M, _),
+    soluciones(M, deducir1Pasada(NN),
+        [[[_,x,_],
+          [x,x,x],
+          [_,x,_]]
+        ]).
+
+test(deducir1Pasada, [nondet]) :-
+    nn(2, NN), NN=nono(M, _),
+    soluciones(M, deducir1Pasada(NN),
+        [[[_,x,x,x,x],
+          [x,x,x,o,x],
+          [x,o,o,o,x],
+          [x,o,o,o,o],
+          [_,o,o,o,x]]
+        ]).
+
+test(deducir1Pasada, [nondet]) :-
+    nn(4, NN), NN=nono(M, _),
+    soluciones(M, deducir1Pasada(NN),
+        [[[o,_,_,_,o],
+          [x,x,x,x,x],
+          [x,x,x,x,x],
+          [o,x,x,x,o],
+          [o,_,_,_,o]]
+        ]).
+
+test(deducir1Pasada, [nondet]) :-
+    nn(5, NN), NN=nono(M, _),
+    soluciones(M, deducir1Pasada(NN),
+        [[[o,o,o,o,o],
+          [_,x,o,x,_],
+          [o,o,o,o,o],
+          [_,_,o,_,_],
+          [_,_,x,_,_]]
+        ]).
+
+
+
 % --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
@@ -187,20 +232,6 @@ test(pintarObligatorias, [nondet]) :-
 %
 % PROBADO HASTA AQUI
 %
-
-
-%
-% TESTS deducir1Pasada
-%
-
-test(deducir1Pasada, [nondet]) :-
-    armarNono([[2],[3],[2]], [[2],[3],[2]], NN), NN=nono(M, _),
-    soluciones(M, deducir1Pasada(NN), 
-        [[[_,x,_],
-          [x,x,x],
-          [_,x,_]]
-        ]).
-
 
 %
 % TESTS deducirVariasPasadas
