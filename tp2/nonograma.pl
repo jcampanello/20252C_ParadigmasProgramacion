@@ -1,29 +1,33 @@
 
 
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+%
 % Ejercicio 1
 
-% flip_length es auxiliar, para verificar que la longitud de una lista es la definida, pero
-% toma la longitud primero
-%
-%! flip_length(?Length, ?List)
-flip_length(N, L) :- length(L, N).
-
 %! matriz(+F, +C, -M)
-matriz(F, C, M) :- length(M, F), maplist(flip_length(C), M).
+matriz(F, C, M) :- length(M, F), maplist(matriz_longitud_fila(C), M).
+% matriz_longitud_fila es auxiliar, para verificar que la longitud de una lista es la definida, pero
+% toma la longitud primero
+matriz_longitud_fila(N, L) :- length(L, N).
 
+
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+%
 % Ejercicio 2
 
-% flip_is_same es auxiliar, para verificar que el valor es el especificado, pero
-% toma el valor objetivo primero
-%
-%! flip_is_same(+Target, ?Value)
-flip_is_same(Target, Value) :- Value = Target.
-
 %! replicar(+X, +N, -L)
-replicar(X, N, L) :- length(L, N), include(flip_is_same(X), L, L).
+replicar(X, N, L) :- length(L, N), include(=(X), L, L).
 
+
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+%
 % Ejercicio 3
-transponer(_, _) :- completar("Ejercicio 3").
+%! transponer(+M, -MT)
+transponer(M, MT) :- findall(R, maplist(nth1(_), M, R), MT).
+
 
 % Predicado dado armarNono/3
 armarNono(RF, RC, nono(M, RS)) :-
@@ -38,14 +42,87 @@ armarNono(RF, RC, nono(M, RS)) :-
 zipR([], [], []).
 zipR([R|RT], [L|LT], [r(R,L)|T]) :- zipR(RT, LT, T).
 
-% Ejercicio 4
-pintadasValidas(_) :- completar("Ejercicio 4").
 
+
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+%
+% Ejercicio 4
+
+%! pintadasValidas(+R)
+pintadasValidas(r(Restric, Linea)) :- 
+	length(Linea, LTotal),
+	length(Restric, LRestric),
+	suma(Restric, CPintada),
+	CLibre is LTotal - CPintada,
+	CLibre >= 0,
+	Rango is max(CLibre - max(LRestric - 1, 0), 1),
+	espaciosInicios(LRestric, ListaEspacios),
+	generarPosibles(ListaEspacios, Restric, Rango, LTotal, Posible),
+	Posible = Linea.
+
+% AUXILIAR - sumatoria de elementos (ENTEROS) de una lista
+%! suma(+L, ?Total)
+suma([], 0).
+suma([ Head | Tail ], Total) :- suma(Tail, Subtotal), Total is Subtotal + Head.
+
+% AUXILIAR - arma una lista conteniendo el punto de inicio para cada espacio
+% (0 para inicial/final y 1 para el resto)
+%! espaciosInicios(+CantRestric, -Espacios)
+espaciosInicios(0, [ 0 ]).
+espaciosInicios(LRestrict, Espacios) :-
+	LRestrict > 0,
+	Internos is LRestrict - 1,
+	replicar(1, Internos, EspaciosInternos),
+	append( [ 0 ], EspaciosInternos, EspaciosIniciales),
+	append(EspaciosIniciales, [ 0 ], Espacios).
+
+% AUXILIAR - genera una posible combinacion para la linea. Recibe:
+% - lista de puntos de inicio para los espacios (0 o 1), que pueden crecre hasta el valor de Rango
+% - lista de pintadas (las longitudes a pintar)
+% - longitud maxima de un segmento de espacios
+% - longitud máxima de la línea
+% - posible línea
+%! generarPosibles(+ListaEspacios, +ListaPintadas, +MaximoEspacio, +Longitud, -Posible).
+generarPosibles( [ X ], [ ], MaximoEspacio, _, Posible) :-
+	espaciosPrevios(X, MaximoEspacio, Posible).
+generarPosibles( [ HE | TE ], [ HR | TR ], MaximoEspacio, Longitud, Posible) :-
+	generarPosibles(TE, TR, MaximoEspacio, Longitud, Resto),
+	replicar(x, HR, Pintadas),
+	append(Pintadas, Resto, PosibleTail),
+	length(PosibleTail, LPosibleTail),
+	LPosibleTail + HE =< Longitud,
+	espaciosPrevios(HE, MaximoEspacio, Espacios),
+	append(Espacios, PosibleTail, Posible),
+	length(Posible, LPosible),
+	LPosible =< Longitud.
+
+% genera las posibilidades de espacios previos. Toma una cantidad inicial y una cantidad maxima,
+% calcula como los posibles prefijos de la lista de cantidad maxima de espacios
+%! espaciosPrevios(+CantInicial, +CantMaxima, ?Espacios)
+espaciosPrevios(CantInicial, CantMaxima, Espacios) :-
+	replicar(o, CantMaxima, EspaciosMaximos),
+	append(Espacios, _, EspaciosMaximos),
+	length(Espacios, LEspacios),
+	LEspacios >= CantInicial.
+
+
+
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+%
 % Ejercicio 5
 resolverNaive(_) :-  completar("Ejercicio 5").
 
+
+
+
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+%
 % Ejercicio 6
 pintarObligatorias(_) :- completar("Ejercicio 6").
+
 
 % Predicado dado combinarCelda/3
 combinarCelda(A, B, _) :- var(A), var(B).
@@ -54,8 +131,14 @@ combinarCelda(A, B, _) :- var(A), nonvar(B).
 combinarCelda(A, B, A) :- nonvar(A), nonvar(B), A = B.
 combinarCelda(A, B, _) :- nonvar(A), nonvar(B), A \== B.
 
+
+
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+%
 % Ejercicio 7
 deducir1Pasada(_) :- completar("Ejercicio 7").
+
 
 % Predicado dado
 cantidadVariablesLibres(T, N) :- term_variables(T, LV), length(LV, N).
@@ -72,12 +155,24 @@ deducirVariasPasadas(NN) :-
 deducirVariasPasadasCont(_, A, A). % Si VI = VF entonces no hubo más cambios y frenamos.
 deducirVariasPasadasCont(NN, A, B) :- A =\= B, deducirVariasPasadas(NN).
 
+
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+%
 % Ejercicio 8
 restriccionConMenosLibres(_, _) :- completar("Ejercicio 8").
 
+
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+%
 % Ejercicio 9
 resolverDeduciendo(NN) :- completar("Ejercicio 9").
 
+
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+%
 % Ejercicio 10
 solucionUnica(NN) :- completar("Ejercicio 10").
 

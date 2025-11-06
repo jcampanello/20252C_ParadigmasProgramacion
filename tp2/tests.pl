@@ -2,10 +2,22 @@
 :- begin_tests(nonograma).
 :- ensure_loaded(nonograma).
 
+%
+% TESTS matriz
+%
 test(matriz, [nondet]) :-
     matriz(2, 3, M),
     M =@= [[_, _, _], [_, _, _]].
+test(matriz, [nondet]) :-
+    matriz(1, 1, M),
+    M =@= [[_]].
+test(matriz, [nondet]) :-
+    matriz(3, 3, M),
+    M =@= [[_, _, _], [_, _, _], [_, _, _]].
 
+%
+% TESTS replicar
+%
 test(replicar, [nondet]) :-
     replicar(_, 0, R),
     R =@= [].
@@ -18,6 +30,13 @@ test(replicar, [nondet]) :-
     replicar(A, 3, R),
     R =@= [A, A, A].
 
+test(replicar, [nondet]) :-
+    replicar(0, 3, R),
+    R =@= [0, 0, 0].
+
+%
+% TESTS transponer
+%
 test(transponer, [nondet]) :-
     transponer([[1]], 
                [[1]]).
@@ -41,6 +60,9 @@ test(transponer, [nondet]) :-
                 [3]],
                [[1, 2, 3]]).
 
+%
+% TESTS pintadasValidas
+%
 test(pintadasValidas, [nondet]) :-
     L = [_, _, _],
     soluciones(L, 
@@ -77,6 +99,21 @@ test(pintadasValidas, [nondet]) :-
         pintadasValidas(r([2], L)), 
         [[x,x,o],[o,x,x]]).
 
+
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+%
+% PROBADO HASTA AQUI
+%
+
+
+%
+% TESTS resolverNaive
+%
+
 test(resolverNaive, [nondet]) :-
     armarNono([[1],[1]], [[1],[1]], NN), NN=nono(M, _),
     soluciones(M, resolverNaive(NN), 
@@ -92,6 +129,10 @@ test(resolverNaive, [nondet]) :-
         [[[o,x,o], % única solución
           [o,x,x]]
         ]).
+
+%
+% TESTS pintarObligatorias
+%
 
 test(pintarObligatorias, [nondet]) :-
     L = [_, _, _],
@@ -111,6 +152,12 @@ test(pintarObligatorias, [nondet]) :-
         pintarObligatorias(r([2], L)), 
         [[A,x,C]]).
 
+
+
+%
+% TESTS deducir1Pasada
+%
+
 test(deducir1Pasada, [nondet]) :-
     armarNono([[2],[3],[2]], [[2],[3],[2]], NN), NN=nono(M, _),
     soluciones(M, deducir1Pasada(NN), 
@@ -119,11 +166,23 @@ test(deducir1Pasada, [nondet]) :-
           [_,x,_]]
         ]).
 
+
+%
+% TESTS deducirVariasPasadas
+%
+
 test(deducirVariasPasadas, [nondet]) :-
     % con deducir1Pasada no se resuelve del todo 
     nn(3, NN1), deducir1Pasada(NN1), cantidadVariablesLibres(NN1, NNV1), NNV1 > 0,
     % pero con deducirVariasPasadas puede resolverlo completamente
     nn(3, NN2), deducirVariasPasadas(NN2), cantidadVariablesLibres(NN2, 0).
+
+
+
+
+%
+% TESTS restriccionConMenosLibres
+%
 
 test(restriccionConMenosLibres, fail) :-
     % si no hay restricciones con libres, falla.
@@ -177,6 +236,13 @@ test(restriccionConMenosLibres, [nondet]) :-
          r([2], [x,B])
         ]).
 
+
+
+
+%
+% TESTS resolverDeduciendo
+%
+
 test(resolverDeduciendo, [nondet]) :-
     nn(10, NN), NN=nono(M, _),
     findall(M, resolverDeduciendo(NN), MS),
@@ -186,11 +252,18 @@ test(resolverDeduciendo, [nondet]) :-
     length(MS, N),
     assertion(N == 36). % no se listan soluciones repetidas
 
+
+%
+% TESTS solucionUnica
+%
+
 test(solucionUnica, [nondet]) :-
     nn(0, NN), solucionUnica(NN).
 
 test(solucionUnica, fail) :-
     nn(10, NN), solucionUnica(NN).
+
+
 
 % Similar a findall/3 pero compara con un conjunto 
 % esperado independientemente del orden.
