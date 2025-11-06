@@ -122,7 +122,7 @@ espaciosPrevios(CantInicial, CantMaxima, Espacios) :-
 %
 % Ejercicio 5
 %! resolverNaive(+NN)
-resolverNaive(nono(M, RS)) :- maplist(pintadasValidas, RS).
+resolverNaive(nono(_, RS)) :- maplist(pintadasValidas, RS).
 
 
 
@@ -130,7 +130,29 @@ resolverNaive(nono(M, RS)) :- maplist(pintadasValidas, RS).
 % --------------------------------------------------------------------------------
 %
 % Ejercicio 6
-pintarObligatorias(_) :- completar("Ejercicio 6").
+%! pintarObligatorias(+R)
+pintarObligatorias(r(Restric, Linea)) :-
+	findall(Linea, pintadasValidas(r(Restric, Linea)), PosiblesLineas),
+	transponer(PosiblesLineas, Lineas),
+	lineasObligatorias(Lineas, Linea).
+
+% AUXILIAR - recibe una lista de lineas (cada línea representando valores de una columna) y
+% arma una lista resultado, donde cada celda se fija a un valor (si la línea tiene el mismo
+% valor en todas las celdas), sino deja la celda sin modificar.
+%! lineasObligatorias(+Lineas, ?Linea)
+lineasObligatorias([], []).
+lineasObligatorias([HLs | TLs], [HL | TL]) :-
+	lineasObligatorias(TLs, TL),
+	list_to_set(HLs, Valores),
+	reducirValorObligatorio(Valores, HL).
+
+% AUXILIAR - recibe una lista de valores únicos (que aparecían en las posibles pintadas). Si todos
+% son el mismo valor (la lista tiene longitud 1), entonces se fija a ese valor. Sino se deja la variable
+% sin modificar.
+%! reducirValorObligatorio(+Valores, +Variable)
+reducirValorObligatorio([], _).
+reducirValorObligatorio([V], HL) :- HL = V.
+reducirValorObligatorio([_, _ | _], _).
 
 
 % Predicado dado combinarCelda/3
