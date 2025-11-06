@@ -178,7 +178,11 @@ test(pintarObligatorias, [nondet]) :-
         pintarObligatorias(r([1, 3], L)), 
         [[_, _, _, x, x, _]]).
 
-
+test(pintarObligatorias, [nondet]) :-
+    L = [x, o, o, o, _],
+    soluciones(L, 
+        pintarObligatorias(r([1, 1], L)), 
+        [[x, o, o, o, x]]).
 
 %
 % TESTS deducir1Pasada
@@ -224,15 +228,6 @@ test(deducir1Pasada, [nondet]) :-
 
 
 
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-%
-% PROBADO HASTA AQUI
-%
-
 %
 % TESTS deducirVariasPasadas
 %
@@ -243,7 +238,197 @@ test(deducirVariasPasadas, [nondet]) :-
     % pero con deducirVariasPasadas puede resolverlo completamente
     nn(3, NN2), deducirVariasPasadas(NN2), cantidadVariablesLibres(NN2, 0).
 
+test(deducirVariasPasadas, [nondet]) :-
+    nn(0, NN), NN=nono(M, _),
+    soluciones(M, deducirVariasPasadas(NN),
+        [[[o,x,o],
+          [o,x,x]]
+        ]).
 
+test(deducirVariasPasadas, [nondet]) :-
+    nn(1, NN), NN=nono(M, _),
+    soluciones(M, deducirVariasPasadas(NN),
+        [[[x,x,x,x,o],
+          [x,x,o,x,o],
+          [x,x,o,o,x],
+          [x,o,o,o,x],
+          [o,o,o,o,x]]
+        ]).
+
+test(deducirVariasPasadas, [nondet]) :-
+    nn(2, NN), NN=nono(M, _),
+    soluciones(M, deducirVariasPasadas(NN),
+        [[[o,x,x,x,x],
+          [x,x,x,o,x],
+          [x,o,o,o,x],
+          [x,o,o,o,o],
+          [x,o,o,o,x]]
+        ]).
+
+test(deducirVariasPasadas, [nondet]) :-
+    nn(3, NN), NN=nono(M, _),
+    soluciones(M, deducirVariasPasadas(NN),
+        [[[x,x,o,x,o,o,o,o,o,o],
+          [o,o,o,o,o,x,x,x,x,o],
+          [o,o,o,x,x,x,o,x,o,o],
+          [o,x,x,x,o,o,o,o,o,o],
+          [o,o,x,x,x,o,x,x,x,o],
+          [x,x,o,o,o,x,o,o,o,o],
+          [x,x,o,o,o,o,o,x,o,o],
+          [o,o,x,x,x,x,o,o,o,o],
+          [x,x,x,x,o,o,x,x,x,x],
+          [o,x,x,x,x,o,x,x,o,o]]
+        ]).
+
+test(deducirVariasPasadas, [nondet]) :-
+    nn(4, NN), NN=nono(M, _),
+    soluciones(M, deducirVariasPasadas(NN),
+        [[[o,x,o,x,o],
+          [x,x,x,x,x],
+          [x,x,x,x,x],
+          [o,x,x,x,o],
+          [o,o,x,o,o]]
+        ]).
+
+test(deducirVariasPasadas, [nondet]) :-
+    nn(5, NN), NN=nono(M, _),
+    soluciones(M, deducirVariasPasadas(NN),
+        [[[o,o,o,o,o],
+          [o,x,o,x,o],
+          [o,o,o,o,o],
+          [_,_,o,_,_],
+          [_,_,x,_,_]]
+        ]).
+
+test(deducirVariasPasadas, [nondet]) :-
+    nn(6, NN), NN=nono(M, _),
+    soluciones(M, deducirVariasPasadas(NN),
+        [[[x,x,x,x,x],
+          [o,x,o,o,o],
+          [o,o,x,o,o],
+          [o,x,o,o,o],
+          [x,x,x,x,x]]
+        ]).
+
+test(deducirVariasPasadas, [nondet]) :-
+    nn(7, NN), NN=nono(M, _),
+    soluciones(M, deducirVariasPasadas(NN),
+        [[[o,o,x,o,x,o,o,o,o,o],
+          [o,x,x,x,x,o,o,o,o,o],
+          [x,o,x,x,x,o,o,o,x,o],
+          [x,x,x,x,x,o,o,x,o,o],
+          [o,x,x,x,o,o,o,x,x,o],
+          [o,o,x,x,x,x,o,o,x,x],
+          [o,o,x,x,x,x,x,o,o,x],
+          [o,x,x,x,x,x,x,o,o,x],
+          [o,x,x,o,x,x,x,o,x,x],
+          [x,x,o,x,x,x,x,x,x,o]]
+        ]).
+
+test(deducirVariasPasadas, [nondet]) :-
+    nn(8, NN), NN=nono(M, _),
+    soluciones(M, deducirVariasPasadas(NN),
+        [[[o,o,x,x,x,x,x,o,o,o],
+          [o,x,o,o,o,o,o,x,o,o],
+          [o,x,o,o,x,o,o,x,o,o],
+          [o,o,x,x,x,x,x,o,o,o],
+          [o,x,x,x,x,x,x,x,o,o],
+          [x,x,x,x,x,x,x,x,o,x],
+          [x,o,x,x,x,x,x,x,x,x],
+          [x,o,o,x,x,x,x,x,x,x],
+          [x,x,o,o,x,x,x,x,x,o],
+          [o,x,x,x,x,x,x,x,o,o]]
+        ]).
+
+test(deducirVariasPasadas, [nondet]) :-
+    nn(9, NN), NN=nono(M, _),
+    soluciones(M, deducirVariasPasadas(NN),
+        [[[o,x,x,x,x],
+          [x,o,x,x,x],
+          [x,x,o,x,x],
+          [x,o,x,o,x],
+          [o,x,x,x,o]]
+        ]).
+
+test(deducirVariasPasadas, [nondet]) :-
+    nn(10, NN), NN=nono(M, _),
+    soluciones(M, deducirVariasPasadas(NN),
+        [[[_,_,_,_,_],
+          [_,_,_,_,_],
+          [_,_,_,_,_],
+          [_,_,_,_,_],
+          [_,_,_,_,_]]
+        ]).
+
+test(deducirVariasPasadas, [nondet]) :-
+    nn(11, NN), NN=nono(M, _),
+    soluciones(M, deducirVariasPasadas(NN),
+        [[[x,o,x,o,o,o,o,x,o,x],
+          [x,x,x,o,o,o,o,x,x,x],
+          [o,x,o,o,o,o,o,o,x,o],
+          [o,x,o,x,o,o,x,o,x,o],
+          [o,x,x,x,x,x,x,x,x,o],
+          [o,o,x,x,x,x,x,x,o,o],
+          [x,x,x,x,x,x,x,x,x,x],
+          [o,o,x,x,x,x,x,x,o,o],
+          [x,x,o,x,x,x,x,o,x,x],
+          [x,o,o,o,o,o,o,o,o,x]]
+        ]).
+
+test(deducirVariasPasadas, [nondet]) :-
+    nn(12, NN), NN=nono(M, _),
+    soluciones(M, deducirVariasPasadas(NN),
+        [[[o,o,o,x,x,x,x,x,x,x,x,x,o,o,o],
+          [o,o,o,x,o,x,o,o,x,o,o,x,o,o,o],
+          [o,o,x,x,x,x,x,x,x,x,x,x,o,o,o],
+          [o,x,x,o,x,o,o,o,o,o,o,o,x,o,o],
+          [o,x,o,x,o,x,o,o,o,o,o,o,o,x,o],
+          [o,x,o,o,x,x,x,x,x,x,x,x,x,x,o],
+          [o,x,o,o,o,x,o,o,o,o,o,o,o,x,o],
+          [o,x,o,o,o,x,o,o,o,o,o,o,o,x,o],
+          [o,x,o,o,o,x,o,o,x,o,x,o,o,x,o],
+          [o,x,o,o,o,x,x,x,x,x,x,x,x,x,o],
+          [o,x,o,o,o,x,x,o,x,o,x,o,x,x,o],
+          [o,x,x,o,o,x,o,x,o,o,o,x,o,x,o],
+          [o,o,x,x,o,x,o,o,x,x,x,o,o,x,o],
+          [o,o,o,x,x,x,o,o,o,o,o,o,o,x,o],
+          [o,o,o,o,x,x,x,x,x,x,x,x,x,x,o]]
+        ]).
+
+test(deducirVariasPasadas, [nondet]) :-
+    nn(13, NN), NN=nono(M, _),
+    soluciones(M, deducirVariasPasadas(NN),
+        [[[_,_,_,_,_],
+          [_,_,_,_,_],
+          [o,o,x,o,x],
+          [_,_,_,_,_],
+          [_,_,_,_,_],
+          [o,o,o,o,o],
+          [_,_,_,_,o],
+          [_,_,_,_,o],
+          [o,x,o,x,o],
+          [_,_,_,_,o],
+          [_,_,_,_,o]]
+        ]).
+
+test(deducirVariasPasadas, [nondet]) :-
+    nn(14, NN), NN=nono(M, _),
+    soluciones(M, deducirVariasPasadas(NN),
+        [[[_,_,_,_],
+          [_,_,_,_],
+          [_,_,_,_],
+          [_,_,_,_]]
+        ]).
+
+
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+%
+% PROBADO HASTA AQUI
+%
 
 
 %

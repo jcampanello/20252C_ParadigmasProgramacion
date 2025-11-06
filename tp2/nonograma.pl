@@ -59,15 +59,15 @@ zipR([R|RT], [L|LT], [r(R,L)|T]) :- zipR(RT, LT, T).
 % Ejercicio 4
 
 %! pintadasValidas(+R)
-pintadasValidas(r(Restric, Linea)) :- 
+pintadasValidas(R) :-
+	R = r(Restric, Linea),
 	length(Linea, LTotal),
 	length(Restric, LRestric),
 	suma(Restric, CPintada),
 	CLibre is LTotal - CPintada,
 	CLibre >= 0,
-	Rango is max(CLibre - max(LRestric - 1, 0), 1),
 	espaciosInicios(LRestric, ListaEspacios),
-	generarPosibles(ListaEspacios, Restric, Rango, LTotal, Posible),
+	generarPosibles(ListaEspacios, Restric, CLibre, LTotal, Posible),
 	Posible = Linea.
 
 % AUXILIAR - sumatoria de elementos (ENTEROS) de una lista
@@ -122,7 +122,9 @@ espaciosPrevios(CantInicial, CantMaxima, Espacios) :-
 %
 % Ejercicio 5
 %! resolverNaive(+NN)
-resolverNaive(nono(_, RS)) :- maplist(pintadasValidas, RS).
+resolverNaive(NN) :-
+	NN = nono(_, RS),
+	maplist(pintadasValidas, RS).
 
 
 
@@ -131,7 +133,8 @@ resolverNaive(nono(_, RS)) :- maplist(pintadasValidas, RS).
 %
 % Ejercicio 6
 %! pintarObligatorias(+R)
-pintarObligatorias(r(Restric, Linea)) :-
+pintarObligatorias(R) :-
+	R = r(Restric, Linea),
 	findall(Linea, pintadasValidas(r(Restric, Linea)), PosiblesLineas),
 	transponer(PosiblesLineas, Lineas),
 	lineasObligatorias(Lineas, Linea).
@@ -169,7 +172,9 @@ combinarCelda(A, B, _) :- nonvar(A), nonvar(B), A \== B.
 %
 % Ejercicio 7
 %! deducir1Pasada(+NN)
-deducir1Pasada(nono(_, RS)) :- maplist(pintarObligatorias, RS).
+deducir1Pasada(NN) :-
+	NN = nono(_, RS),
+	maplist(pintarObligatorias, RS).
 
 
 % Predicado dado
