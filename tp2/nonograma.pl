@@ -6,10 +6,10 @@
 % Ejercicio 1
 
 %! matriz(+F, +C, -M)
-matriz(F, C, M) :- length(M, F), maplist(matriz_longitud_fila(C), M).
-% matriz_longitud_fila es auxiliar, para verificar que la longitud de una lista es la definida, pero
-% toma la longitud primero
-matriz_longitud_fila(N, L) :- length(L, N).
+matriz(F, C, M) :-
+	length(M, F),
+	length(Sample_Row, C),
+	maplist(same_length(Sample_Row), M).
 
 
 % --------------------------------------------------------------------------------
@@ -26,7 +26,16 @@ replicar(X, N, L) :- length(L, N), include(=(X), L, L).
 %
 % Ejercicio 3
 %! transponer(+M, -MT)
-transponer(M, MT) :- findall(R, maplist(nth1(_), M, R), MT).
+transponer(M, MT) :-
+	nth1(1, M, FirstRow),
+	length(FirstRow, ColCount),
+	replicar([], ColCount, MT0),
+	foldl(agregar_a_columna, M, MT0, MT).
+agregar_a_columna([], [], []).
+agregar_a_columna([HR | TR], [HM0 | TM0], [HMT | TMT]) :-
+	agregar_a_columna(TR, TM0, TMT),
+	append(HM0, [HR], HMT).
+
 
 
 % Predicado dado armarNono/3
@@ -112,8 +121,8 @@ espaciosPrevios(CantInicial, CantMaxima, Espacios) :-
 % --------------------------------------------------------------------------------
 %
 % Ejercicio 5
-resolverNaive(_) :-  completar("Ejercicio 5").
-
+%! resolverNaive(+NN)
+resolverNaive(nono(M, RS)) :- maplist(pintadasValidas, RS).
 
 
 
