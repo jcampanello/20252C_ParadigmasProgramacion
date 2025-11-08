@@ -254,6 +254,160 @@ solucionUnica(NN) :-
 
 
 
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+%
+% Ejercicio 11 - INICIO
+%
+% intento de automatizar el análisis
+
+%
+% Resuelve la tabla del ejercicio 11. Busca primero todos los números de nonograma
+% predefinidos y para cada uno realiza el análisis necesario (obtener el tamaño,
+% decidir si tiene solucion única y si se puede resolver sin backtracking) y arma
+% una lista con esa información.
+% Luego, procesa la lista con la información y genera salida por pantalla.
+%
+%! ejercicio11()
+ejercicio11() :-
+    findall(Numero, nn(Numero, _), Numeros),
+    maplist(realizaAnalisis, Numeros, Informacion),
+	mostrarInformacion(Informacion).
+
+%
+% Realiza el análisis de un nonograma
+%
+% IMPORTANTE: 	aqui usamos algo obtenido de internet, que genera un valor (succeeded o failed)
+% 				si el predicado tiene éxito o falla (ver check_success_failure más abajo)
+%
+%! realizaAnalisis(+Nro, -NNI)
+realizaAnalisis(Numero, nonoInfo(Numero, (F, C), SolucionUnica, SinBacktracking)) :-
+    nn(Numero, NN),
+    tamaño(NN, F, C),
+	check_success_failure(solucionUnica(NN), SolucionUnica),
+	check_success_failure(resuelveSinBacktraking(NN), SinBacktracking).
+
+%
+% Obtiene el tamaño de un nonograma. Es diferente al provisto para el ejercicio porque
+% usa el predicado matriz como si fuera reversible, pero no lo es
+%
+%! tamaño(+NN, -F, -C)
+tamaño(nono(M, _), F, C) :-
+	length(M, F),
+	nth1(1, M, PrimeraFila),
+	length(PrimeraFila, C).
+
+%
+% Intenta resolver el nonograma haciendo múltiples pasadas. Si al terminar las pasadas,
+% no hay variables libres, entonces puede resolverse sin backtracking
+%
+%! resuelveSinBacktracking(NN)
+resuelveSinBacktraking(NN) :-
+    findall(NN, deducirVariasPasadas(NN), Soluciones),
+    maplist(resuelto, Soluciones).
+
+%! resuelto(NN)
+resuelto(nono(M, _)) :- cantidadVariablesLibres(M, FV), FV =:= 0.
+
+%
+% Buscamos en internet la forma de obtener un booleano para saber si un predicado
+% tuvo éxito o falló y obtuvimos este código
+%
+%! check_success_failure(+Goal, -Result)
+check_success_failure(Goal, Result) :-
+    (   call(Goal)
+    ->  Result = succeeded
+    ;   Result = failed
+    ).
+
+%
+% Convierte succceded o failed a un string (Si, No)
+%
+%! statusToString(+Status, -String)
+statusToString(succeeded, 'Si').
+statusToString(failed, 'No').
+
+%
+% Genera la tabla que muestra la información recopilada sobre los nonogramas. Esto
+% es una especie de clon mutado del predicado provisto mostrarNono.
+% Lo que hace es generar la base de la tabla (bordes y títulos) y luego mostrar
+% formateada la información obtenida para cada nonograma.
+%
+%! mostrarInformacion(+Informacion)
+mostrarInformacion(Informacion) :-
+	mostrarInfoBorde('┌', '┐', '┬'),
+	mostrarFila('N', 'Tamaño', '¿Tiene solución única?', '¿Es deducible Sin backtracking?'),
+	mostrarInfoBorde('├', '┤', '┼'),
+	maplist(mostrarInfo, Informacion),
+	mostrarInfoBorde('└', '┘', '┴').
+
+%
+% Escribe la información de un nonograma
+%
+%! mostrarInfo(+NNInfo)
+mostrarInfo(nonoInfo(Numero, (F, C), SolucionUnica, SinBacktracking)) :-
+	number_string(Numero, SNumero),
+	number_string(F, SF),
+	number_string(C, SC),
+	string_concat(SF, ' x ', STamaño1),
+	string_concat(STamaño1, SC, STamaño),
+	statusToString(SolucionUnica, SSolucionUnica),
+	statusToString(SinBacktracking, SSinBacktracking),
+	mostrarFila(SNumero, STamaño, SSolucionUnica, SSinBacktracking).
+
+%
+% Escribe una línea de borde (superior, inferior y separador)
+%
+%! mostrarInfoBorde(+BordeIzq, +BordeDer, +SepColumna)
+mostrarInfoBorde(BordeIzq, BordeDer, SepColumna) :-
+	stringRepeat('─', 8, S1),
+	stringRepeat('─', 12, S2),
+	stringRepeat('─', 25, S3),
+	stringRepeat('─', 35, S4),
+	write(BordeIzq),
+	write(S1), write(SepColumna),
+	write(S2), write(SepColumna),
+	write(S3), write(SepColumna),
+	write(S4),
+	write(BordeDer),
+	nl.
+
+%
+% Escribe la información de un nonograma
+%
+%! mostrarFila(+Numero, +Tamaño, +SolucionUnica, +SinBacktracking)
+mostrarFila(Numero, Tamaño, SolucionUnica, SinBacktracking) :-
+	stringJustified(Numero,           8, JNumero),
+	stringJustified(Tamaño,          12, JTamaño),
+	stringJustified(SolucionUnica,   25, JSolucionUnica),
+	stringJustified(SinBacktracking, 35, JSinBacktracking),
+	write('│'),
+	write(JNumero), write('│'),
+	write(JTamaño), write('│'),
+	write(JSolucionUnica), write('│'),
+	write(JSinBacktracking),
+	write('│'),
+	nl.
+
+%
+% Escribe un string justificado según un tamaño
+%
+%! writeStringFilled(+S, +Size, -JustS)
+stringJustified(S, Size, JustS) :-
+	string_length(S, SLen),
+	Padding is Size - SLen,
+    RightPadding is Padding // 2,
+    LeftPadding is Padding - RightPadding,
+	stringRepeat(' ', LeftPadding, LPadding),
+	stringRepeat(' ', RightPadding, RPadding),
+	string_concat(LPadding, S, JPartial),
+	string_concat(JPartial, RPadding, JustS).
+
+%
+% Ejercicio 11 - FIN
+%
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
