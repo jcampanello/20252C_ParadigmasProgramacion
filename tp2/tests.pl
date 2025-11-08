@@ -420,17 +420,6 @@ test(deducirVariasPasadas, [nondet]) :-
           [_,_,_,_]]
         ]).
 
-
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-%
-% PROBADO HASTA AQUI
-%
-
-
 %
 % TESTS restriccionConMenosLibres
 %
@@ -487,9 +476,6 @@ test(restriccionConMenosLibres, [nondet]) :-
          r([2], [x,B])
         ]).
 
-
-
-
 %
 % TESTS resolverDeduciendo
 %
@@ -504,6 +490,178 @@ test(resolverDeduciendo, [nondet]) :-
     assertion(N == 36). % no se listan soluciones repetidas
 
 
+test(resolverDeduciendo, [nondet]) :-
+    nn(0, NN), NN=nono(M, _),
+    soluciones(M, resolverDeduciendo(NN),
+        [[[o,x,o],
+          [o,x,x]]
+        ]).
+
+test(resolverDeduciendo, [nondet]) :-
+    nn(1, NN), NN=nono(M, _),
+    soluciones(M, resolverDeduciendo(NN),
+        [[[x,x,x,x,o],
+          [x,x,o,x,o],
+          [x,x,o,o,x],
+          [x,o,o,o,x],
+          [o,o,o,o,x]]
+        ]).
+
+test(resolverDeduciendo, [nondet]) :-
+    nn(2, NN), NN=nono(M, _),
+    soluciones(M, resolverDeduciendo(NN),
+        [[[o,x,x,x,x],
+          [x,x,x,o,x],
+          [x,o,o,o,x],
+          [x,o,o,o,o],
+          [x,o,o,o,x]]
+        ]).
+
+test(resolverDeduciendo, [nondet]) :-
+    nn(3, NN), NN=nono(M, _),
+    soluciones(M, resolverDeduciendo(NN),
+        [[[x,x,o,x,o,o,o,o,o,o],
+          [o,o,o,o,o,x,x,x,x,o],
+          [o,o,o,x,x,x,o,x,o,o],
+          [o,x,x,x,o,o,o,o,o,o],
+          [o,o,x,x,x,o,x,x,x,o],
+          [x,x,o,o,o,x,o,o,o,o],
+          [x,x,o,o,o,o,o,x,o,o],
+          [o,o,x,x,x,x,o,o,o,o],
+          [x,x,x,x,o,o,x,x,x,x],
+          [o,x,x,x,x,o,x,x,o,o]]
+        ]).
+
+test(resolverDeduciendo, [nondet]) :-
+    nn(4, NN), NN=nono(M, _),
+    soluciones(M, resolverDeduciendo(NN),
+        [[[o,x,o,x,o],
+          [x,x,x,x,x],
+          [x,x,x,x,x],
+          [o,x,x,x,o],
+          [o,o,x,o,o]]
+        ]).
+
+test(resolverDeduciendo, [nondet]) :-
+    nn(5, NN), NN=nono(M, _),
+    soluciones(M, resolverDeduciendo(NN),
+        [[[o,o,o,o,o],
+          [o,x,o,x,o],
+          [o,o,o,o,o],
+          [x,o,o,o,x],
+          [o,x,x,x,o]]
+        ]).
+
+test(resolverDeduciendo, [nondet]) :-
+    nn(6, NN), NN=nono(M, _),
+    soluciones(M, resolverDeduciendo(NN),
+        [[[x,x,x,x,x],
+          [o,x,o,o,o],
+          [o,o,x,o,o],
+          [o,x,o,o,o],
+          [x,x,x,x,x]]
+        ]).
+
+test(resolverDeduciendo, [nondet]) :-
+    nn(7, NN), NN=nono(M, _),
+    soluciones(M, resolverDeduciendo(NN),
+        [[[o,o,x,o,x,o,o,o,o,o],
+          [o,x,x,x,x,o,o,o,o,o],
+          [x,o,x,x,x,o,o,o,x,o],
+          [x,x,x,x,x,o,o,x,o,o],
+          [o,x,x,x,o,o,o,x,x,o],
+          [o,o,x,x,x,x,o,o,x,x],
+          [o,o,x,x,x,x,x,o,o,x],
+          [o,x,x,x,x,x,x,o,o,x],
+          [o,x,x,o,x,x,x,o,x,x],
+          [x,x,o,x,x,x,x,x,x,o]]
+        ]).
+
+test(resolverDeduciendo, [nondet]) :-
+    nn(8, NN), NN=nono(M, _),
+    soluciones(M, resolverDeduciendo(NN),
+        [[[o,o,x,x,x,x,x,o,o,o],
+          [o,x,o,o,o,o,o,x,o,o],
+          [o,x,o,o,x,o,o,x,o,o],
+          [o,o,x,x,x,x,x,o,o,o],
+          [o,x,x,x,x,x,x,x,o,o],
+          [x,x,x,x,x,x,x,x,o,x],
+          [x,o,x,x,x,x,x,x,x,x],
+          [x,o,o,x,x,x,x,x,x,x],
+          [x,x,o,o,x,x,x,x,x,o],
+          [o,x,x,x,x,x,x,x,o,o]]
+        ]).
+
+test(resolverDeduciendo, [nondet]) :-
+    nn(9, NN), NN=nono(M, _),
+    soluciones(M, resolverDeduciendo(NN),
+        [[[o,x,x,x,x],
+          [x,o,x,x,x],
+          [x,x,o,x,x],
+          [x,o,x,o,x],
+          [o,x,x,x,o]]
+        ]).
+
+test(resolverDeduciendo, [nondet]) :-
+    nn(11, NN), NN=nono(M, _),
+    soluciones(M, resolverDeduciendo(NN),
+        [[[x,o,x,o,o,o,o,x,o,x],
+          [x,x,x,o,o,o,o,x,x,x],
+          [o,x,o,o,o,o,o,o,x,o],
+          [o,x,o,x,o,o,x,o,x,o],
+          [o,x,x,x,x,x,x,x,x,o],
+          [o,o,x,x,x,x,x,x,o,o],
+          [x,x,x,x,x,x,x,x,x,x],
+          [o,o,x,x,x,x,x,x,o,o],
+          [x,x,o,x,x,x,x,o,x,x],
+          [x,o,o,o,o,o,o,o,o,x]]
+        ]).
+
+test(resolverDeduciendo, [nondet]) :-
+    nn(12, NN), NN=nono(M, _),
+    soluciones(M, resolverDeduciendo(NN),
+        [[[o,o,o,x,x,x,x,x,x,x,x,x,o,o,o],
+          [o,o,o,x,o,x,o,o,x,o,o,x,o,o,o],
+          [o,o,x,x,x,x,x,x,x,x,x,x,o,o,o],
+          [o,x,x,o,x,o,o,o,o,o,o,o,x,o,o],
+          [o,x,o,x,o,x,o,o,o,o,o,o,o,x,o],
+          [o,x,o,o,x,x,x,x,x,x,x,x,x,x,o],
+          [o,x,o,o,o,x,o,o,o,o,o,o,o,x,o],
+          [o,x,o,o,o,x,o,o,o,o,o,o,o,x,o],
+          [o,x,o,o,o,x,o,o,x,o,x,o,o,x,o],
+          [o,x,o,o,o,x,x,x,x,x,x,x,x,x,o],
+          [o,x,o,o,o,x,x,o,x,o,x,o,x,x,o],
+          [o,x,x,o,o,x,o,x,o,o,o,x,o,x,o],
+          [o,o,x,x,o,x,o,o,x,x,x,o,o,x,o],
+          [o,o,o,x,x,x,o,o,o,o,o,o,o,x,o],
+          [o,o,o,o,x,x,x,x,x,x,x,x,x,x,o]]
+        ]).
+
+test(resolverDeduciendo, [nondet]) :-
+    nn(13, NN), NN=nono(M, _),
+    soluciones(M, resolverDeduciendo(NN),
+        [[[o,o,x,x,o],
+          [o,o,x,o,x],
+          [o,o,x,o,x],
+          [o,x,o,o,x],
+          [o,o,o,x,o],
+          [o,o,o,o,o],
+          [o,x,x,o,o],
+          [o,x,o,x,o],
+          [o,x,o,x,o],
+          [x,o,o,x,o],
+          [o,o,x,o,o]]
+        ]).
+
+test(resolverDeduciendo, [nondet]) :-
+    nn(14, NN), NN=nono(M, _),
+    soluciones(M, resolverDeduciendo(NN),
+        [[[o,x,o,x],
+          [x,o,x,o],
+          [x,o,o,x],
+          [o,x,x,o]]
+        ]).
+
 %
 % TESTS solucionUnica
 %
@@ -513,6 +671,7 @@ test(solucionUnica, [nondet]) :-
 
 test(solucionUnica, fail) :-
     nn(10, NN), solucionUnica(NN).
+
 
 
 

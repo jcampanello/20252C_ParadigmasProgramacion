@@ -66,8 +66,8 @@ pintadasValidas(R) :-
 	suma(Restric, CPintada),
 	CLibre is LTotal - CPintada,
 	CLibre >= 0,
-	espaciosInicios(LRestric, ListaEspacios),
-	generarPosibles(ListaEspacios, Restric, CLibre, LTotal, Posible),
+	espaciosMinimos(LRestric, EspaciosMinimos),
+	generarPosibles(EspaciosMinimos, Restric, CLibre, LTotal, Posible),
 	Posible = Linea.
 
 % AUXILIAR - sumatoria de elementos (ENTEROS) de una lista
@@ -77,9 +77,9 @@ suma([ Head | Tail ], Total) :- suma(Tail, Subtotal), Total is Subtotal + Head.
 
 % AUXILIAR - arma una lista conteniendo el punto de inicio para cada espacio
 % (0 para inicial/final y 1 para el resto)
-%! espaciosInicios(+CantRestric, -Espacios)
-espaciosInicios(0, [ 0 ]).
-espaciosInicios(LRestrict, Espacios) :-
+%! espaciosMinimos(+CantRestric, -Espacios)
+espaciosMinimos(0, [ 0 ]).
+espaciosMinimos(LRestrict, Espacios) :-
 	LRestrict > 0,
 	Internos is LRestrict - 1,
 	replicar(1, Internos, EspaciosInternos),
@@ -132,6 +132,17 @@ resolverNaive(NN) :-
 % --------------------------------------------------------------------------------
 %
 % Ejercicio 6
+%
+% IDEA: Lo que hacemos es calcular todas las pintadas válidas para la restriccion. Esto
+% retorna genera una lista donde cada fila es una pintada válida, de forma que las columnas
+% de cada fila corresponden a una celda de la restriccion. Por eso calculamos la transpuesta
+% (haciendo que cada fila de la nueva matriz corresponda a los posibles valores para la celda
+% especifica). Hecho esto, cada fila de la matriz transpuesta corresponde a una celda de
+% la restriccion. Lo que queda es armar un "set" con los valores posibles de cada fila y
+% verificar si ese set tiene longitud 0, 1 o 2. Si tiene un único elemento, entonces la
+% celda de la restriccion siempre estará pintada con ese elemento (x u o) y se puede
+% considerar como una celda obligatoria.
+%
 %! pintarObligatorias(+R)
 pintarObligatorias(R) :-
 	R = r(Restric, Linea),
@@ -193,36 +204,57 @@ deducirVariasPasadasCont(_, A, A). % Si VI = VF entonces no hubo más cambios y 
 deducirVariasPasadasCont(NN, A, B) :- A =\= B, deducirVariasPasadas(NN).
 
 
-
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-%
-% RESUELTO HASTA AQUI
-%
-
-
 % --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
 %
 % Ejercicio 8
-restriccionConMenosLibres(_, _) :- completar("Ejercicio 8").
+%! restriccionConMenosLibres(+NN, -R)
+restriccionConMenosLibres(nono(_, RS), R) :- unaRestriccion(RS, R, FV), not((unaRestriccion(RS, _, NFV), FV > NFV)).
+
+%! unaRestriccion(+RS, -R, -FV)
+unaRestriccion(RS, R, FV) :- member(R, RS), R = r(_, L), cantidadVariablesLibres(L, FV), FV > 0.
+
 
 
 % --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
 %
 % Ejercicio 9
-resolverDeduciendo(NN) :- completar("Ejercicio 9").
+%! resolverDeduciendo(+NN)
+resolverDeduciendo(NN) :-
+	NN = nono(M,_),
+	deducirVariasPasadas(NN),
+	cantidadVariablesLibres(M, FV),
+	resolverDeduciendoCont(NN, FV).
+
+%! resolverDeduciendoCont(+NN, +FV)
+resolverDeduciendoCont(_, 0).
+resolverDeduciendoCont(NN, FV) :-
+	NN = nono(M,_),
+	FV > 0,
+	restriccionConMenosLibres(NN, r(Restric, Linea)),
+	!,
+	findall(Linea, pintadasValidas(r(Restric, Linea)), PosiblesLineas),
+	member(LineaPosible, PosiblesLineas),
+	Linea = LineaPosible,
+	deducirVariasPasadas(NN),
+	cantidadVariablesLibres(M, FV1),
+	resolverDeduciendoCont(NN, FV1).
 
 
 % --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
 %
 % Ejercicio 10
-solucionUnica(NN) :- completar("Ejercicio 10").
+%! solucionUnica(+NN)
+solucionUnica(NN) :-
+	NN = nono(M, R),
+	setof(M, resolverDeduciendo(nono(M, R)), Soluciones),
+	length(Soluciones, 1).
+
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                              %
