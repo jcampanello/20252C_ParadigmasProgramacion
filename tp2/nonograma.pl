@@ -8,8 +8,9 @@
 %! matriz(+F, +C, -M)
 matriz(F, C, M) :-
 	length(M, F),
-	length(Sample_Row, C),
-	maplist(same_length(Sample_Row), M).
+	nth1(1, M, FirstRow),
+	length(FirstRow, C),
+	maplist(same_length(FirstRow), M).
 
 
 % --------------------------------------------------------------------------------
@@ -18,7 +19,7 @@ matriz(F, C, M) :-
 % Ejercicio 2
 
 %! replicar(+X, +N, -L)
-replicar(X, N, L) :- length(L, N), include(=(X), L, L).
+replicar(X, N, L) :- length(L, N), maplist(=(X), L).
 
 
 % --------------------------------------------------------------------------------
@@ -288,14 +289,11 @@ realizaAnalisis(Numero, nonoInfo(Numero, (F, C), SolucionUnica, SinBacktracking)
 	check_success_failure(resuelveSinBacktraking(NN), SinBacktracking).
 
 %
-% Obtiene el tamaño de un nonograma. Es diferente al provisto para el ejercicio porque
-% usa el predicado matriz como si fuera reversible, pero no lo es
+% Obtiene el tamaño de un nonograma. Es diferente al provisto en el enunciado porque
+% aquí ya tenemos el nonograma y es más facil usarlo que crearlo nuevamente.
 %
 %! tamaño(+NN, -F, -C)
-tamaño(nono(M, _), F, C) :-
-	length(M, F),
-	nth1(1, M, PrimeraFila),
-	length(PrimeraFila, C).
+tamaño(nono(M, _), F, C) :- matriz(F, C, M).
 
 %
 % Intenta resolver el nonograma haciendo múltiples pasadas. Si al terminar las pasadas,
