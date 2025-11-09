@@ -18,7 +18,7 @@ matriz(F, C, M) :-
 %
 % Ejercicio 2
 
-%! replicar(+X, +N, -L)
+%! replicar(?X, ?N, ?L)
 replicar(X, N, L) :- length(L, N), maplist(=(X), L).
 
 
@@ -28,9 +28,8 @@ replicar(X, N, L) :- length(L, N), maplist(=(X), L).
 % Ejercicio 3
 %! transponer(+M, -MT)
 transponer(M, MT) :-
-	nth1(1, M, FirstRow),
-	length(FirstRow, ColCount),
-	replicar([], ColCount, MT0),
+	matriz(_, C, M),
+	matriz(C, 0, MT0),
 	foldl(agregar_a_columna, M, MT0, MT).
 agregar_a_columna([], [], []).
 agregar_a_columna([HR | TR], [HM0 | TM0], [HMT | TMT]) :-
@@ -58,26 +57,37 @@ zipR([R|RT], [L|LT], [r(R,L)|T]) :- zipR(RT, LT, T).
 % --------------------------------------------------------------------------------
 %
 % Ejercicio 4
-
+%
+% Primero se hacen algunas cuentas, para saber cual es la cantidad de celdas pintadas,
+% espacios forzados y rango de espacio libre para asignar.
+% Luego se crea una lista con el punto de inicio para los espacios (si hay N restricciones
+% se crean N+1 espacios: N-1 entre pintadas y 2 para inicio y fin). El primero y último
+% tienen punto de inicio 0 (son opcionales), los intermedios tienen punto de inicio 1
+% (se requiere un mínimo de un espacio entre celdas pintadas).
+% Luego se realiza un Generate and Test. Generate genera todas las posibles pintadas
+% considerando que cada posible espacio va de la cantidad mínima al máximo disponible.
+% Esto puede generar líneas posibles de mayor longitud, pero estos casos se eliminan
+% en la parte Test (se trata de unificar con la Línea de la restricción). Esta
+% unificación verifica la longitud y además 
+%
 %! pintadasValidas(+R)
-pintadasValidas(R) :-
-	R = r(Restric, Linea),
+pintadasValidas(r(Restric, Linea)) :-
 	length(Linea, LTotal),
 	length(Restric, LRestric),
-	suma(Restric, CPintada),
+	sum_list(Restric, CPintada),
 	CLibre is LTotal - CPintada,
 	CLibre >= 0,
 	espaciosMinimos(LRestric, EspaciosMinimos),
+	% generate
 	generarPosibles(EspaciosMinimos, Restric, CLibre, LTotal, Posible),
+	% test (verificamos la longitud y la unificación chequea variables con valor y el resto)
+	length(Posible, LPosible),
+	LPosible = LTotal,
 	Posible = Linea.
-
-% AUXILIAR - sumatoria de elementos (ENTEROS) de una lista
-%! suma(+L, ?Total)
-suma([], 0).
-suma([ Head | Tail ], Total) :- suma(Tail, Subtotal), Total is Subtotal + Head.
 
 % AUXILIAR - arma una lista conteniendo el punto de inicio para cada espacio
 % (0 para inicial/final y 1 para el resto)
+%
 %! espaciosMinimos(+CantRestric, -Espacios)
 espaciosMinimos(0, [ 0 ]).
 espaciosMinimos(LRestrict, Espacios) :-
@@ -93,6 +103,7 @@ espaciosMinimos(LRestrict, Espacios) :-
 % - longitud maxima de un segmento de espacios
 % - longitud máxima de la línea
 % - posible línea
+%
 %! generarPosibles(+ListaEspacios, +ListaPintadas, +MaximoEspacio, +Longitud, -Posible).
 generarPosibles( [ X ], [ ], MaximoEspacio, _, Posible) :-
 	espaciosPrevios(X, MaximoEspacio, Posible).
@@ -107,15 +118,15 @@ generarPosibles( [ HE | TE ], [ HR | TR ], MaximoEspacio, Longitud, Posible) :-
 	length(Posible, LPosible),
 	LPosible =< Longitud.
 
-% genera las posibilidades de espacios previos. Toma una cantidad inicial y una cantidad maxima,
-% calcula como los posibles prefijos de la lista de cantidad maxima de espacios
+% AUXILIAR - genera las posibilidades de espacios previos. Toma una cantidad inicial y una cantidad
+% máxima y para cada entero dentro de ese rango, genera una lista con esa cantidad de espacios.
+% La cantidad inicial puede ser 0 (para el primer y último espacio) o uno, para los espacios
+% intermedios. Se filtra los espacios iniciales
+%
 %! espaciosPrevios(+CantInicial, +CantMaxima, ?Espacios)
 espaciosPrevios(CantInicial, CantMaxima, Espacios) :-
-	replicar(o, CantMaxima, EspaciosMaximos),
-	append(Espacios, _, EspaciosMaximos),
-	length(Espacios, LEspacios),
-	LEspacios >= CantInicial.
-
+	between(CantInicial, CantMaxima, Len),
+	replicar(o, Len, Espacios).
 
 
 % --------------------------------------------------------------------------------
@@ -123,8 +134,7 @@ espaciosPrevios(CantInicial, CantMaxima, Espacios) :-
 %
 % Ejercicio 5
 %! resolverNaive(+NN)
-resolverNaive(NN) :-
-	NN = nono(_, RS),
+resolverNaive(nono(_, RS)) :-
 	maplist(pintadasValidas, RS).
 
 
@@ -145,8 +155,7 @@ resolverNaive(NN) :-
 % considerar como una celda obligatoria.
 %
 %! pintarObligatorias(+R)
-pintarObligatorias(R) :-
-	R = r(Restric, Linea),
+pintarObligatorias(r(Restric, Linea)) :-
 	findall(Linea, pintadasValidas(r(Restric, Linea)), PosiblesLineas),
 	transponer(PosiblesLineas, Lineas),
 	lineasObligatorias(Lineas, Linea).
@@ -184,8 +193,7 @@ combinarCelda(A, B, _) :- nonvar(A), nonvar(B), A \== B.
 %
 % Ejercicio 7
 %! deducir1Pasada(+NN)
-deducir1Pasada(NN) :-
-	NN = nono(_, RS),
+deducir1Pasada(nono(_, RS)) :-
 	maplist(pintarObligatorias, RS).
 
 
@@ -248,8 +256,7 @@ resolverDeduciendoCont(NN, FV) :-
 %
 % Ejercicio 10
 %! solucionUnica(+NN)
-solucionUnica(NN) :-
-	NN = nono(M, R),
+solucionUnica(nono(M, R)) :-
 	setof(M, resolverDeduciendo(nono(M, R)), Soluciones),
 	length(Soluciones, 1).
 

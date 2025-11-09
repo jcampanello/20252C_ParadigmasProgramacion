@@ -5,59 +5,106 @@
 %
 % TESTS matriz
 %
-test(matriz, [nondet]) :-
+test(matriz) :-
     matriz(2, 3, M),
     M =@= [[_, _, _], [_, _, _]].
-test(matriz, [nondet]) :-
+
+test(matriz) :-
     matriz(1, 1, M),
     M =@= [[_]].
-test(matriz, [nondet]) :-
+
+test(matriz) :-
     matriz(3, 3, M),
     M =@= [[_, _, _], [_, _, _], [_, _, _]].
+
+test(matriz) :-
+    M = [[_, _], [ _, _], [_, _], [_, _]],
+    matriz(F, C, M),
+    F =@= 4,
+    C =@= 2.
+
+test(matriz, [fail]) :-
+    M = [[_, _], [ _, _], [_, _], [_, _]],
+    matriz(3, _, M).
+
+test(matriz, [fail]) :-
+    M = [[_, _], [ _, _], [_, _], [_, _]],
+    matriz(_, 3, M).
 
 %
 % TESTS replicar
 %
-test(replicar, [nondet]) :-
+test(replicar) :-
     replicar(_, 0, R),
     R =@= [].
 
-test(replicar, [nondet]) :-
+test(replicar) :-
     replicar(x, 2, R),
     R =@= [x, x].
 
-test(replicar, [nondet]) :-
+test(replicar) :-
     replicar(A, 3, R),
     R =@= [A, A, A].
 
-test(replicar, [nondet]) :-
+test(replicar) :-
     replicar(0, 3, R),
     R =@= [0, 0, 0].
+
+test(replicar) :-
+    R = [ 0, 0, 0 ],
+    replicar(X, N, R),
+    X =@= 0,
+    N =@= 3.
+
+test(replicar) :-
+    R = [ 0, 0, 0 ],
+    replicar(0, N, R),
+    N =@= 3.
+
+test(replicar, [fail]) :-
+    R = [ 0, 1, 0 ],
+    replicar(0, 3, R).
+
+test(replicar, [fail]) :-
+    R = [ 1, 0, 0 ],
+    replicar(_, _, R).
 
 %
 % TESTS transponer
 %
-test(transponer, [nondet]) :-
+test(transponer) :-
     transponer([[1]], 
                [[1]]).
 
-test(transponer, [nondet]) :-
+test(transponer) :-
     transponer([[1, 2, 3], 
                 [4, 5, 6]], 
                [[1, 4], 
                 [2, 5], 
                 [3, 6]]).
 
-test(transponer, [nondet]) :-
+test(transponer) :-
+    transponer([[1, _, 3], 
+                [_, 5, 6]], 
+               [[1, 4], 
+                [2, _], 
+                [_, 6]]).
+
+test(transponer) :-
     transponer([[1, 2, 3]], 
                [[1], 
                 [2], 
                 [3]]).
 
-test(transponer, [nondet]) :-
+test(transponer) :-
     transponer([[1], 
                 [2], 
                 [3]],
+               [[1, 2, 3]]).
+
+test(transponer, [fail]) :-
+    transponer([[1], 
+                [2]],
                [[1, 2, 3]]).
 
 %
