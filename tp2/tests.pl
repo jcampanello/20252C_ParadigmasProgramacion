@@ -709,6 +709,10 @@ test(resolverDeduciendo, [nondet]) :-
           [o,x,x,o]]
         ]).
 
+test(resolverDeduciendo, fail) :-
+    armarNono([[1], [1], [1], [1, 1], [1, 1]], [[1, 1], [1, 1], [1,1], [1], [ 1]], NN),
+    resolverDeduciendo(NN).
+
 %
 % TESTS solucionUnica
 %
