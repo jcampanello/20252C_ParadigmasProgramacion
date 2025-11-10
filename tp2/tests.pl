@@ -150,6 +150,8 @@ test(pintadasValidas, [nondet]) :-
 %
 % TESTS resolverNaive
 %
+% TESTEAMOS SOLO LOS CASOS DE HASTA 5x5 PORQUE EL TIEMPO CRECE MUCHO
+%
 
 test(resolverNaive, [nondet]) :-
     armarNono([[1],[1]], [[1],[1]], NN), NN=nono(M, _),
@@ -165,6 +167,136 @@ test(resolverNaive, [nondet]) :-
     soluciones(M, resolverNaive(NN), 
         [[[o,x,o], % única solución
           [o,x,x]]
+        ]).
+
+test(resolverNaive, [nondet]) :-
+    nn(1, NN), NN=nono(M, _),
+    soluciones(M, resolverNaive(NN),
+        [[[x,x,x,x,o],
+          [x,x,o,x,o],
+          [x,x,o,o,x],
+          [x,o,o,o,x],
+          [o,o,o,o,x]]
+        ]).
+
+test(resolverNaive, [nondet]) :-
+    nn(2, NN), NN=nono(M, _),
+    soluciones(M, resolverNaive(NN),
+        [[[o,x,x,x,x],
+          [x,x,x,o,x],
+          [x,o,o,o,x],
+          [x,o,o,o,o],
+          [x,o,o,o,x]]
+        ]).
+
+test(resolverNaive, [nondet]) :-
+    nn(4, NN), NN=nono(M, _),
+    soluciones(M, resolverNaive(NN),
+        [[[o,x,o,x,o],
+          [x,x,x,x,x],
+          [x,x,x,x,x],
+          [o,x,x,x,o],
+          [o,o,x,o,o]]
+        ]).
+
+test(resolverNaive, [nondet]) :-
+    nn(5, NN), NN=nono(M, _),
+    soluciones(M, resolverNaive(NN),
+        [[[o,o,o,o,o],
+          [o,x,o,x,o],
+          [o,o,o,o,o],
+          [x,o,o,o,x],
+          [o,x,x,x,o]]
+        ]).
+
+test(resolverNaive, [nondet]) :-
+    nn(6, NN), NN=nono(M, _),
+    soluciones(M, resolverNaive(NN),
+        [[[x,x,x,x,x],
+          [o,x,o,o,o],
+          [o,o,x,o,o],
+          [o,x,o,o,o],
+          [x,x,x,x,x]]
+        ]).
+
+test(resolverNaive, [nondet]) :-
+    nn(9, NN), NN=nono(M, _),
+    soluciones(M, resolverNaive(NN),
+        [[[o,x,x,x,x],
+          [x,o,x,x,x],
+          [x,x,o,x,x],
+          [x,o,x,o,x],
+          [o,x,x,x,o]]
+        ]).
+
+test(resolverNaive, [nondet]) :-
+    nn(10, NN), NN=nono(M, _),
+    soluciones(M, resolverNaive(NN),
+        [[[o,o,o,o,x],[o,x,o,o,o],[x,o,o,o,o],[o,x,o,x,o],[x,o,x,o,o]],
+         [[o,o,o,o,x],[x,o,o,o,o],[o,x,o,o,o],[x,o,x,o,o],[o,x,o,x,o]],
+         [[o,o,o,x,o],[o,x,o,o,o],[x,o,o,o,o],[o,x,o,o,x],[x,o,x,o,o]],
+         [[o,o,o,x,o],[x,o,o,o,o],[o,x,o,o,o],[x,o,x,o,o],[o,x,o,o,x]],
+         [[o,o,x,o,o],[o,x,o,o,o],[x,o,o,o,o],[o,x,o,o,x],[x,o,o,x,o]],
+         [[o,o,x,o,o],[o,x,o,o,o],[x,o,o,o,o],[o,x,o,x,o],[x,o,o,o,x]],
+         [[o,o,x,o,o],[x,o,o,o,o],[o,x,o,o,o],[x,o,o,o,x],[o,x,o,x,o]],
+         [[o,o,x,o,o],[x,o,o,o,o],[o,x,o,o,o],[x,o,o,x,o],[o,x,o,o,x]],
+         [[o,x,o,o,o],[o,o,o,o,x],[x,o,o,o,o],[o,x,o,x,o],[x,o,x,o,o]],
+         [[o,x,o,o,o],[o,o,o,x,o],[x,o,o,o,o],[o,x,o,o,x],[x,o,x,o,o]],
+         [[o,x,o,o,o],[o,o,x,o,o],[x,o,o,o,o],[o,x,o,o,x],[x,o,o,x,o]],
+         [[o,x,o,o,o],[o,o,x,o,o],[x,o,o,o,o],[o,x,o,x,o],[x,o,o,o,x]],
+         [[o,x,o,o,o],[x,o,o,o,o],[o,o,o,o,x],[o,x,o,x,o],[x,o,x,o,o]],
+         [[o,x,o,o,o],[x,o,o,o,o],[o,o,o,o,x],[x,o,x,o,o],[o,x,o,x,o]],
+         [[o,x,o,o,o],[x,o,o,o,o],[o,o,o,x,o],[o,x,o,o,x],[x,o,x,o,o]],
+         [[o,x,o,o,o],[x,o,o,o,o],[o,o,o,x,o],[x,o,x,o,o],[o,x,o,o,x]],
+         [[o,x,o,o,o],[x,o,o,o,o],[o,o,x,o,o],[o,x,o,o,x],[x,o,o,x,o]],
+         [[o,x,o,o,o],[x,o,o,o,o],[o,o,x,o,o],[x,o,o,o,x],[o,x,o,x,o]],
+         [[o,x,o,o,o],[x,o,o,o,o],[o,o,x,o,o],[o,x,o,x,o],[x,o,o,o,x]],
+         [[o,x,o,o,o],[x,o,o,o,o],[o,o,x,o,o],[x,o,o,x,o],[o,x,o,o,x]],
+         [[o,x,o,o,o],[x,o,o,o,o],[o,x,o,o,o],[o,o,x,o,x],[x,o,o,x,o]],
+         [[o,x,o,o,o],[x,o,o,o,o],[o,x,o,o,o],[x,o,o,x,o],[o,o,x,o,x]],
+         [[x,o,o,o,o],[o,o,o,o,x],[o,x,o,o,o],[x,o,x,o,o],[o,x,o,x,o]],
+         [[x,o,o,o,o],[o,o,o,x,o],[o,x,o,o,o],[x,o,x,o,o],[o,x,o,o,x]],
+         [[x,o,o,o,o],[o,o,x,o,o],[o,x,o,o,o],[x,o,o,o,x],[o,x,o,x,o]],
+         [[x,o,o,o,o],[o,o,x,o,o],[o,x,o,o,o],[x,o,o,x,o],[o,x,o,o,x]],
+         [[x,o,o,o,o],[o,x,o,o,o],[o,o,o,o,x],[o,x,o,x,o],[x,o,x,o,o]],
+         [[x,o,o,o,o],[o,x,o,o,o],[o,o,o,o,x],[x,o,x,o,o],[o,x,o,x,o]],
+         [[x,o,o,o,o],[o,x,o,o,o],[o,o,o,x,o],[o,x,o,o,x],[x,o,x,o,o]],
+         [[x,o,o,o,o],[o,x,o,o,o],[o,o,o,x,o],[x,o,x,o,o],[o,x,o,o,x]],
+         [[x,o,o,o,o],[o,x,o,o,o],[o,o,x,o,o],[o,x,o,o,x],[x,o,o,x,o]],
+         [[x,o,o,o,o],[o,x,o,o,o],[o,o,x,o,o],[x,o,o,o,x],[o,x,o,x,o]],
+         [[x,o,o,o,o],[o,x,o,o,o],[o,o,x,o,o],[o,x,o,x,o],[x,o,o,o,x]],
+         [[x,o,o,o,o],[o,x,o,o,o],[o,o,x,o,o],[x,o,o,x,o],[o,x,o,o,x]],
+         [[x,o,o,o,o],[o,x,o,o,o],[x,o,o,o,o],[o,o,x,o,x],[o,x,o,x,o]],
+         [[x,o,o,o,o],[o,x,o,o,o],[x,o,o,o,o],[o,x,o,x,o],[o,o,x,o,x]]]).
+
+test(resolverNaive, [nondet]) :-
+    nn(14, NN), NN=nono(M, _),
+    soluciones(M, resolverNaive(NN),
+        [[[o,x,o,x],
+          [x,o,x,o],
+          [x,o,o,x],
+          [o,x,x,o]]
+        ]).
+
+% EJEMPLO TOMADO DE DISCORD
+test(resolverNaive, [nondet]) :-
+    armarNono([[4], [3], [2,1], [1,3], [1,1], [3],[2]], [[4],[3],[2,1], [1,3], [1,1], [3], [2]], NN),
+    NN=nono(M, _),
+    soluciones(M, resolverNaive(NN),
+        [[[x,x,x,x,o,o,o],
+          [x,x,x,o,o,o,o],
+          [x,x,o,o,o,o,x],
+          [x,o,o,o,x,x,x],
+          [o,o,o,x,o,x,o],
+          [o,o,o,x,x,x,o],
+          [o,o,x,x,o,o,o]],
+         [[x,x,x,x,o,o,o],
+          [x,x,x,o,o,o,o],
+          [x,x,o,x,o,o,o],
+          [x,o,x,x,x,o,o],
+          [o,o,o,x,o,x,o],
+          [o,o,o,o,x,x,x],
+          [o,o,o,o,o,x,x]]
         ]).
 
 %
@@ -467,6 +599,33 @@ test(deducirVariasPasadas, [nondet]) :-
           [_,_,_,_]]
         ]).
 
+% EJEMPLO TOMADO DE nonograms.com
+test(deducirVariasPasadas, [nondet]) :-
+    armarNono([[1],[2],[3],[1,3],[3,1],[2,5],[1,2,1],[1,1,7],[2,2,1],[2,1,8],[1,1,2,1],[1,1,1,9],[2,1,2,1],[17],[1],[20],[1,1,1,1,1,1,1],[2,2,2,2,2,3],[3,2],[12]],[[1],[2],[1,1,1],[1,1,2],[3,2,1],[2,2,1,3],[3,1,1,1,1,1],[2,1,1,2,2,1],[3,1,1,1,1,1,1,1],[2,1,1,1,1,2,1,1,1],[17,1],[2,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],[2,1,1,1,1,2,1],[1,1,1,1,1,1,1,1],[2,1,1,1,1,1,1],[3,1,1,2,2],[3,1,1,2],[3,1,1],[3]],NN),
+    NN=nono(M, _),
+    soluciones(M, deducirVariasPasadas(NN),
+        [[[o,o,o,o,o,o,o,o,o,o,x,o,o,o,o,o,o,o,o,o],
+          [o,o,o,o,o,o,o,o,o,x,x,o,o,o,o,o,o,o,o,o],
+          [o,o,o,o,o,o,o,o,o,x,x,x,o,o,o,o,o,o,o,o],
+          [o,o,o,o,o,o,o,o,x,o,x,x,x,o,o,o,o,o,o,o],
+          [o,o,o,o,o,o,o,o,x,x,x,o,o,x,o,o,o,o,o,o],
+          [o,o,o,o,o,o,o,x,x,o,x,x,x,x,x,o,o,o,o,o],
+          [o,o,o,o,o,o,o,x,o,x,x,o,o,o,o,x,o,o,o,o],
+          [o,o,o,o,o,o,x,o,x,o,x,x,x,x,x,x,x,o,o,o],
+          [o,o,o,o,o,o,x,x,o,x,x,o,o,o,o,o,x,o,o,o],
+          [o,o,o,o,o,x,x,o,x,o,x,x,x,x,x,x,x,x,o,o],
+          [o,o,o,o,o,x,o,x,o,x,x,o,o,o,o,o,o,x,o,o],
+          [o,o,o,o,x,o,x,o,x,o,x,x,x,x,x,x,x,x,x,o],
+          [o,o,o,o,x,x,o,x,o,x,x,o,o,o,o,o,o,o,x,o],
+          [o,o,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,o],
+          [o,o,o,o,o,o,o,o,o,o,x,o,o,o,o,o,o,o,o,o],
+          [x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x],
+          [o,x,o,o,x,o,o,x,o,o,x,o,o,x,o,o,x,o,o,x],
+          [o,o,x,x,o,x,x,o,x,x,o,x,x,o,x,x,o,x,x,x],
+          [o,o,o,x,x,x,o,o,o,o,o,o,o,o,o,o,x,x,o,o],
+          [o,o,o,o,o,x,x,x,x,x,x,x,x,x,x,x,x,o,o,o]]
+        ]).
+
 %
 % TESTS restriccionConMenosLibres
 %
@@ -650,6 +809,46 @@ test(resolverDeduciendo, [nondet]) :-
         ]).
 
 test(resolverDeduciendo, [nondet]) :-
+    nn(10, NN), NN=nono(M, _),
+    soluciones(M, resolverDeduciendo(NN),
+        [[[o,o,o,o,x],[o,x,o,o,o],[x,o,o,o,o],[o,x,o,x,o],[x,o,x,o,o]],
+         [[o,o,o,o,x],[x,o,o,o,o],[o,x,o,o,o],[x,o,x,o,o],[o,x,o,x,o]],
+         [[o,o,o,x,o],[o,x,o,o,o],[x,o,o,o,o],[o,x,o,o,x],[x,o,x,o,o]],
+         [[o,o,o,x,o],[x,o,o,o,o],[o,x,o,o,o],[x,o,x,o,o],[o,x,o,o,x]],
+         [[o,o,x,o,o],[o,x,o,o,o],[x,o,o,o,o],[o,x,o,o,x],[x,o,o,x,o]],
+         [[o,o,x,o,o],[o,x,o,o,o],[x,o,o,o,o],[o,x,o,x,o],[x,o,o,o,x]],
+         [[o,o,x,o,o],[x,o,o,o,o],[o,x,o,o,o],[x,o,o,o,x],[o,x,o,x,o]],
+         [[o,o,x,o,o],[x,o,o,o,o],[o,x,o,o,o],[x,o,o,x,o],[o,x,o,o,x]],
+         [[o,x,o,o,o],[o,o,o,o,x],[x,o,o,o,o],[o,x,o,x,o],[x,o,x,o,o]],
+         [[o,x,o,o,o],[o,o,o,x,o],[x,o,o,o,o],[o,x,o,o,x],[x,o,x,o,o]],
+         [[o,x,o,o,o],[o,o,x,o,o],[x,o,o,o,o],[o,x,o,o,x],[x,o,o,x,o]],
+         [[o,x,o,o,o],[o,o,x,o,o],[x,o,o,o,o],[o,x,o,x,o],[x,o,o,o,x]],
+         [[o,x,o,o,o],[x,o,o,o,o],[o,o,o,o,x],[o,x,o,x,o],[x,o,x,o,o]],
+         [[o,x,o,o,o],[x,o,o,o,o],[o,o,o,o,x],[x,o,x,o,o],[o,x,o,x,o]],
+         [[o,x,o,o,o],[x,o,o,o,o],[o,o,o,x,o],[o,x,o,o,x],[x,o,x,o,o]],
+         [[o,x,o,o,o],[x,o,o,o,o],[o,o,o,x,o],[x,o,x,o,o],[o,x,o,o,x]],
+         [[o,x,o,o,o],[x,o,o,o,o],[o,o,x,o,o],[o,x,o,o,x],[x,o,o,x,o]],
+         [[o,x,o,o,o],[x,o,o,o,o],[o,o,x,o,o],[x,o,o,o,x],[o,x,o,x,o]],
+         [[o,x,o,o,o],[x,o,o,o,o],[o,o,x,o,o],[o,x,o,x,o],[x,o,o,o,x]],
+         [[o,x,o,o,o],[x,o,o,o,o],[o,o,x,o,o],[x,o,o,x,o],[o,x,o,o,x]],
+         [[o,x,o,o,o],[x,o,o,o,o],[o,x,o,o,o],[o,o,x,o,x],[x,o,o,x,o]],
+         [[o,x,o,o,o],[x,o,o,o,o],[o,x,o,o,o],[x,o,o,x,o],[o,o,x,o,x]],
+         [[x,o,o,o,o],[o,o,o,o,x],[o,x,o,o,o],[x,o,x,o,o],[o,x,o,x,o]],
+         [[x,o,o,o,o],[o,o,o,x,o],[o,x,o,o,o],[x,o,x,o,o],[o,x,o,o,x]],
+         [[x,o,o,o,o],[o,o,x,o,o],[o,x,o,o,o],[x,o,o,o,x],[o,x,o,x,o]],
+         [[x,o,o,o,o],[o,o,x,o,o],[o,x,o,o,o],[x,o,o,x,o],[o,x,o,o,x]],
+         [[x,o,o,o,o],[o,x,o,o,o],[o,o,o,o,x],[o,x,o,x,o],[x,o,x,o,o]],
+         [[x,o,o,o,o],[o,x,o,o,o],[o,o,o,o,x],[x,o,x,o,o],[o,x,o,x,o]],
+         [[x,o,o,o,o],[o,x,o,o,o],[o,o,o,x,o],[o,x,o,o,x],[x,o,x,o,o]],
+         [[x,o,o,o,o],[o,x,o,o,o],[o,o,o,x,o],[x,o,x,o,o],[o,x,o,o,x]],
+         [[x,o,o,o,o],[o,x,o,o,o],[o,o,x,o,o],[o,x,o,o,x],[x,o,o,x,o]],
+         [[x,o,o,o,o],[o,x,o,o,o],[o,o,x,o,o],[x,o,o,o,x],[o,x,o,x,o]],
+         [[x,o,o,o,o],[o,x,o,o,o],[o,o,x,o,o],[o,x,o,x,o],[x,o,o,o,x]],
+         [[x,o,o,o,o],[o,x,o,o,o],[o,o,x,o,o],[x,o,o,x,o],[o,x,o,o,x]],
+         [[x,o,o,o,o],[o,x,o,o,o],[x,o,o,o,o],[o,o,x,o,x],[o,x,o,x,o]],
+         [[x,o,o,o,o],[o,x,o,o,o],[x,o,o,o,o],[o,x,o,x,o],[o,o,x,o,x]]]).
+
+test(resolverDeduciendo, [nondet]) :-
     nn(11, NN), NN=nono(M, _),
     soluciones(M, resolverDeduciendo(NN),
         [[[x,o,x,o,o,o,o,x,o,x],
@@ -707,6 +906,75 @@ test(resolverDeduciendo, [nondet]) :-
           [x,o,x,o],
           [x,o,o,x],
           [o,x,x,o]]
+        ]).
+
+% EJEMPLO TOMADO DE DISCORD
+test(resolverDeduciendo, [nondet]) :-
+    armarNono([[4], [3], [2,1], [1,3], [1,1], [3],[2]], [[4],[3],[2,1], [1,3], [1,1], [3], [2]], NN),
+    NN=nono(M, _),
+    soluciones(M, resolverDeduciendo(NN),
+        [[[x,x,x,x,o,o,o],
+          [x,x,x,o,o,o,o],
+          [x,x,o,o,o,o,x],
+          [x,o,o,o,x,x,x],
+          [o,o,o,x,o,x,o],
+          [o,o,o,x,x,x,o],
+          [o,o,x,x,o,o,o]],
+         [[x,x,x,x,o,o,o],
+          [x,x,x,o,o,o,o],
+          [x,x,o,x,o,o,o],
+          [x,o,x,x,x,o,o],
+          [o,o,o,x,o,x,o],
+          [o,o,o,o,x,x,x],
+          [o,o,o,o,o,x,x]]
+        ]).
+
+% EJEMPLO TOMADO DE DISCORD
+test(resolverDeduciendo, [nondet]) :-
+    armarNono([[4],[3],[2,1],[1,3],[1,1],[3],[2]], [[4],[3],[2,1],[1,3], [1,1],[3],[2]], NN),
+    NN=nono(M, _),
+    soluciones(M, resolverDeduciendo(NN),
+        [[[x,x,x,x,o,o,o],
+          [x,x,x,o,o,o,o],
+          [x,x,o,o,o,o,x],
+          [x,o,o,o,x,x,x],
+          [o,o,o,x,o,x,o],
+          [o,o,o,x,x,x,o],
+          [o,o,x,x,o,o,o]],
+         [[x,x,x,x,o,o,o],
+          [x,x,x,o,o,o,o],
+          [x,x,o,x,o,o,o],
+          [x,o,x,x,x,o,o],
+          [o,o,o,x,o,x,o],
+          [o,o,o,o,x,x,x],
+          [o,o,o,o,o,x,x]]
+        ]).
+
+% EJEMPLO TOMADO DE nonograms.com
+test(deducirVariasPasadas, [nondet]) :-
+    armarNono([[1],[2],[3],[1,3],[3,1],[2,5],[1,2,1],[1,1,7],[2,2,1],[2,1,8],[1,1,2,1],[1,1,1,9],[2,1,2,1],[17],[1],[20],[1,1,1,1,1,1,1],[2,2,2,2,2,3],[3,2],[12]],[[1],[2],[1,1,1],[1,1,2],[3,2,1],[2,2,1,3],[3,1,1,1,1,1],[2,1,1,2,2,1],[3,1,1,1,1,1,1,1],[2,1,1,1,1,2,1,1,1],[17,1],[2,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],[2,1,1,1,1,2,1],[1,1,1,1,1,1,1,1],[2,1,1,1,1,1,1],[3,1,1,2,2],[3,1,1,2],[3,1,1],[3]],NN),
+    NN=nono(M, _),
+    soluciones(M, deducirVariasPasadas(NN),
+        [[[o,o,o,o,o,o,o,o,o,o,x,o,o,o,o,o,o,o,o,o],
+          [o,o,o,o,o,o,o,o,o,x,x,o,o,o,o,o,o,o,o,o],
+          [o,o,o,o,o,o,o,o,o,x,x,x,o,o,o,o,o,o,o,o],
+          [o,o,o,o,o,o,o,o,x,o,x,x,x,o,o,o,o,o,o,o],
+          [o,o,o,o,o,o,o,o,x,x,x,o,o,x,o,o,o,o,o,o],
+          [o,o,o,o,o,o,o,x,x,o,x,x,x,x,x,o,o,o,o,o],
+          [o,o,o,o,o,o,o,x,o,x,x,o,o,o,o,x,o,o,o,o],
+          [o,o,o,o,o,o,x,o,x,o,x,x,x,x,x,x,x,o,o,o],
+          [o,o,o,o,o,o,x,x,o,x,x,o,o,o,o,o,x,o,o,o],
+          [o,o,o,o,o,x,x,o,x,o,x,x,x,x,x,x,x,x,o,o],
+          [o,o,o,o,o,x,o,x,o,x,x,o,o,o,o,o,o,x,o,o],
+          [o,o,o,o,x,o,x,o,x,o,x,x,x,x,x,x,x,x,x,o],
+          [o,o,o,o,x,x,o,x,o,x,x,o,o,o,o,o,o,o,x,o],
+          [o,o,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,o],
+          [o,o,o,o,o,o,o,o,o,o,x,o,o,o,o,o,o,o,o,o],
+          [x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x],
+          [o,x,o,o,x,o,o,x,o,o,x,o,o,x,o,o,x,o,o,x],
+          [o,o,x,x,o,x,x,o,x,x,o,x,x,o,x,x,o,x,x,x],
+          [o,o,o,x,x,x,o,o,o,o,o,o,o,o,o,o,x,x,o,o],
+          [o,o,o,o,o,x,x,x,x,x,x,x,x,x,x,x,x,o,o,o]]
         ]).
 
 test(resolverDeduciendo, fail) :-
