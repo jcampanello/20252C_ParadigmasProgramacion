@@ -18,8 +18,8 @@ matriz(F, C, M) :-
 %
 % Ejercicio 2
 
-%! replicar(?X, ?N, ?L)
-replicar(X, N, L) :- length(L, N), maplist(=(X), L).
+%! replicar(?E, ?N, ?L)
+replicar(E, N, L) :- length(L, N), maplist(=(E), L).
 
 
 % --------------------------------------------------------------------------------
@@ -395,6 +395,11 @@ statusToString(failed, 'No').
 %
 %! mostrarInformacion(+Informacion)
 mostrarInformacion(PredefInfo, NoPredefInfo) :-
+	write('--'), nl,
+	write('-- Esto es el output del predicado ejercicio11() que se puede utilizar en la consola'), nl,
+	write('-- luego de cargar el archivo nonograma.'), nl,
+	write('--'), nl,
+	write('--'), nl,
 	mostrarInfoBorde('┌', '┐', '┬'),
 	mostrarFila('N', 'Tamaño', '¿Tiene solución única?', '¿Es deducible Sin backtracking?'),
 	mostrarInfoBorde('├', '┤', '┼'),
