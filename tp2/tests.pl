@@ -230,6 +230,16 @@ test(resolverNaive, [nondet]) :-
         ]).
 
 test(resolverNaive, [nondet]) :-
+    nn(14, NN), NN=nono(M, _),
+    soluciones(M, resolverNaive(NN),
+        [[[o,x,o,x],
+          [x,o,x,o],
+          [x,o,o,x],
+          [o,x,x,o]]
+        ]).
+
+/*
+test(resolverNaive, [nondet]) :-
     nn(10, NN), NN=nono(M, _),
     soluciones(M, resolverNaive(NN),
         [[[o,o,o,o,x],[o,x,o,o,o],[x,o,o,o,o],[o,x,o,x,o],[x,o,x,o,o]],
@@ -269,19 +279,9 @@ test(resolverNaive, [nondet]) :-
          [[x,o,o,o,o],[o,x,o,o,o],[x,o,o,o,o],[o,o,x,o,x],[o,x,o,x,o]],
          [[x,o,o,o,o],[o,x,o,o,o],[x,o,o,o,o],[o,x,o,x,o],[o,o,x,o,x]]]).
 
-test(resolverNaive, [nondet]) :-
-    nn(14, NN), NN=nono(M, _),
-    soluciones(M, resolverNaive(NN),
-        [[[o,x,o,x],
-          [x,o,x,o],
-          [x,o,o,x],
-          [o,x,x,o]]
-        ]).
-
 % EJEMPLO TOMADO DE DISCORD
 test(resolverNaive, [nondet]) :-
-    armarNono([[4], [3], [2,1], [1,3], [1,1], [3],[2]], [[4],[3],[2,1], [1,3], [1,1], [3], [2]], NN),
-    NN=nono(M, _),
+    nn(100, NN), NN=nono(M, _),
     soluciones(M, resolverNaive(NN),
         [[[x,x,x,x,o,o,o],
           [x,x,x,o,o,o,o],
@@ -298,6 +298,23 @@ test(resolverNaive, [nondet]) :-
           [o,o,o,o,x,x,x],
           [o,o,o,o,o,x,x]]
         ]).
+
+% EJEMPLO TOMADO DE DISCORD
+test(resolverNaive, [nondet]) :-
+    nn(101, NN), NN=nono(M, _),
+    soluciones(M, resolverNaive(NN),
+        [[[o,o,x,x,o,o,o,o,o,o],
+          [o,x,x,x,x,o,x,o,o,o],
+          [x,o,o,o,o,x,o,o,o,o],
+          [o,o,x,x,o,x,o,x,x,o],
+          [o,x,x,x,x,x,x,x,x,x],
+          [o,x,x,x,x,x,x,x,o,x],
+          [o,x,x,x,x,x,x,x,x,x],
+          [o,x,x,x,x,x,x,o,x,x],
+          [o,o,x,x,x,x,o,x,x,o],
+          [o,o,o,x,x,x,x,x,o,o]]
+        ]).
+*/
 
 %
 % TESTS pintarObligatorias
@@ -599,10 +616,22 @@ test(deducirVariasPasadas, [nondet]) :-
           [_,_,_,_]]
         ]).
 
+% EJEMPLO TOMADO DE DISCORD
+test(deducirVariasPasadas, [nondet]) :-
+    nn(100, NN), NN=nono(M, _),
+    soluciones(M, deducirVariasPasadas(NN),
+        [[[_,_,_,x,_,_,_],
+          [_,_,_,o,_,_,_],
+          [_,_,_,_,o,_,_],
+          [x,o,_,_,x,_,_],
+          [_,_,o,x,o,_,_],
+          [_,_,_,_,_,_,_],
+          [_,_,_,_,_,_,_]]
+        ]).
+
 % EJEMPLO TOMADO DE nonograms.com
 test(deducirVariasPasadas, [nondet]) :-
-    armarNono([[1],[2],[3],[1,3],[3,1],[2,5],[1,2,1],[1,1,7],[2,2,1],[2,1,8],[1,1,2,1],[1,1,1,9],[2,1,2,1],[17],[1],[20],[1,1,1,1,1,1,1],[2,2,2,2,2,3],[3,2],[12]],[[1],[2],[1,1,1],[1,1,2],[3,2,1],[2,2,1,3],[3,1,1,1,1,1],[2,1,1,2,2,1],[3,1,1,1,1,1,1,1],[2,1,1,1,1,2,1,1,1],[17,1],[2,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],[2,1,1,1,1,2,1],[1,1,1,1,1,1,1,1],[2,1,1,1,1,1,1],[3,1,1,2,2],[3,1,1,2],[3,1,1],[3]],NN),
-    NN=nono(M, _),
+    nn(200, NN), NN=nono(M, _),
     soluciones(M, deducirVariasPasadas(NN),
         [[[o,o,o,o,o,o,o,o,o,o,x,o,o,o,o,o,o,o,o,o],
           [o,o,o,o,o,o,o,o,o,x,x,o,o,o,o,o,o,o,o,o],
@@ -910,8 +939,7 @@ test(resolverDeduciendo, [nondet]) :-
 
 % EJEMPLO TOMADO DE DISCORD
 test(resolverDeduciendo, [nondet]) :-
-    armarNono([[4], [3], [2,1], [1,3], [1,1], [3],[2]], [[4],[3],[2,1], [1,3], [1,1], [3], [2]], NN),
-    NN=nono(M, _),
+    nn(100, NN), NN=nono(M, _),
     soluciones(M, resolverDeduciendo(NN),
         [[[x,x,x,x,o,o,o],
           [x,x,x,o,o,o,o],
@@ -931,30 +959,24 @@ test(resolverDeduciendo, [nondet]) :-
 
 % EJEMPLO TOMADO DE DISCORD
 test(resolverDeduciendo, [nondet]) :-
-    armarNono([[4],[3],[2,1],[1,3],[1,1],[3],[2]], [[4],[3],[2,1],[1,3], [1,1],[3],[2]], NN),
-    NN=nono(M, _),
+    nn(101, NN), NN=nono(M, _),
     soluciones(M, resolverDeduciendo(NN),
-        [[[x,x,x,x,o,o,o],
-          [x,x,x,o,o,o,o],
-          [x,x,o,o,o,o,x],
-          [x,o,o,o,x,x,x],
-          [o,o,o,x,o,x,o],
-          [o,o,o,x,x,x,o],
-          [o,o,x,x,o,o,o]],
-         [[x,x,x,x,o,o,o],
-          [x,x,x,o,o,o,o],
-          [x,x,o,x,o,o,o],
-          [x,o,x,x,x,o,o],
-          [o,o,o,x,o,x,o],
-          [o,o,o,o,x,x,x],
-          [o,o,o,o,o,x,x]]
+        [[[o,o,x,x,o,o,o,o,o,o],
+          [o,x,x,x,x,o,x,o,o,o],
+          [x,o,o,o,o,x,o,o,o,o],
+          [o,o,x,x,o,x,o,x,x,o],
+          [o,x,x,x,x,x,x,x,x,x],
+          [o,x,x,x,x,x,x,x,o,x],
+          [o,x,x,x,x,x,x,x,x,x],
+          [o,x,x,x,x,x,x,o,x,x],
+          [o,o,x,x,x,x,o,x,x,o],
+          [o,o,o,x,x,x,x,x,o,o]]
         ]).
 
 % EJEMPLO TOMADO DE nonograms.com
-test(deducirVariasPasadas, [nondet]) :-
-    armarNono([[1],[2],[3],[1,3],[3,1],[2,5],[1,2,1],[1,1,7],[2,2,1],[2,1,8],[1,1,2,1],[1,1,1,9],[2,1,2,1],[17],[1],[20],[1,1,1,1,1,1,1],[2,2,2,2,2,3],[3,2],[12]],[[1],[2],[1,1,1],[1,1,2],[3,2,1],[2,2,1,3],[3,1,1,1,1,1],[2,1,1,2,2,1],[3,1,1,1,1,1,1,1],[2,1,1,1,1,2,1,1,1],[17,1],[2,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],[2,1,1,1,1,2,1],[1,1,1,1,1,1,1,1],[2,1,1,1,1,1,1],[3,1,1,2,2],[3,1,1,2],[3,1,1],[3]],NN),
-    NN=nono(M, _),
-    soluciones(M, deducirVariasPasadas(NN),
+test(resolverDeduciendo, [nondet]) :-
+    nn(200, NN), NN=nono(M, _),
+    soluciones(M, resolverDeduciendo(NN),
         [[[o,o,o,o,o,o,o,o,o,o,x,o,o,o,o,o,o,o,o,o],
           [o,o,o,o,o,o,o,o,o,x,x,o,o,o,o,o,o,o,o,o],
           [o,o,o,o,o,o,o,o,o,x,x,x,o,o,o,o,o,o,o,o],

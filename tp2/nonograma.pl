@@ -261,21 +261,36 @@ resolverDeduciendo(NN) :-
 	resolverDeduciendoCont(NN, FV).
 
 %! resolverDeduciendoCont(+NN, +FV)
-resolverDeduciendoCont(_, 0).
+resolverDeduciendoCont(_, 0). 												% no hay variables libres => solución!
 resolverDeduciendoCont(NN, FV) :-
-	FV > 0,
-	NN = nono(M,_),
-	restriccionConMenosLibres(NN, r(Restric, Linea)),
-	% queremos que corte aquí porque cualquier restricción de menor longitud es equivalente
-	% para resolver el problema. Sino cortamos, al elegir otra restricción, se generaría la
-	% misma solución.
+	FV > 0, 																% hace disjunto el predicado anterior
+	restriccionConMenosLibres(NN, r(Restric, Linea)), 						% buscamos una restricción mínima
+	%
+	% aquí realizamos un CUT porque puede haber más de una línea (con variables
+	% no instanciadas) y con la mínima cantidad de restricciones. La idea del
+	% algoritmo es pensar que cualquiera de las restricciones con cantidad mínima
+	% es equivalente, porque las otras restricciones serán deducidas de forma
+	% simple o serán tratadas más adelante. Si no se realiza el cut, luego de
+	% resolver usando la restricción elegida, se usaría otra restricción mínima
+	% en el mismo punto, generando otra solución equivalente (pero explorada por
+	% otra rama del árbol).
+	%
 	!,
-	findall(Linea, pintadasValidas(r(Restric, Linea)), PosiblesLineas),
-	member(LineaPosible, PosiblesLineas),
-	Linea = LineaPosible,
-	deducirVariasPasadas(NN),
-	cantidadVariablesLibres(M, FV1),
+	findall(Linea, pintadasValidas(r(Restric, Linea)), PosiblesLineas), 	% buscamos todas las líneas posibles
+	member(LineaPosible, PosiblesLineas), 									% elegimos las posibles, de a una
+	Linea = LineaPosible, 													% unificamos => falla+próxima línea o continúa
+	deducirVariasPasadas(NN), 												% trata de deducir (o llegar a una inconsistencia)
+	cantidadVariablesLibresNono(NN, FV1), 									% itera
 	resolverDeduciendoCont(NN, FV1).
+
+% IDEA: este predicado se creó como un "wrapper" que opera sobre el nonograma (en lugar de sólo
+% la matriz, como lo hace cantidadVariablesLibres). Usar este predicado evita la necesidad de
+% abrir el nonograma dentro de resolverDeduciendoCont.
+%
+%! cantidadVariablesLibresNono(+NN, -N)
+cantidadVariablesLibresNono(nono(M,_), N) :-
+	cantidadVariablesLibres(M, N).
+
 
 % --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
@@ -309,8 +324,14 @@ solucionUnica(nono(M, R)) :-
 %! ejercicio11()
 ejercicio11() :-
     findall(Numero, nn(Numero, _), Numeros),
-    maplist(realizaAnalisis, Numeros, Informacion),
-	mostrarInformacion(Informacion).
+	include(esNonoPredefinido, Numeros, Predefinidos),
+	exclude(esNonoPredefinido, Numeros, NoPredefinidos),
+    maplist(realizaAnalisis, Predefinidos, PredefInfo),
+    maplist(realizaAnalisis, NoPredefinidos, NoPredefInfo),
+	mostrarInformacion(PredefInfo, NoPredefInfo).
+
+%! esNonoPredefinido(+N)
+esNonoPredefinido(N) :- N < 100.
 
 %
 % Realiza el análisis de un nonograma
@@ -373,11 +394,13 @@ statusToString(failed, 'No').
 % formateada la información obtenida para cada nonograma.
 %
 %! mostrarInformacion(+Informacion)
-mostrarInformacion(Informacion) :-
+mostrarInformacion(PredefInfo, NoPredefInfo) :-
 	mostrarInfoBorde('┌', '┐', '┬'),
 	mostrarFila('N', 'Tamaño', '¿Tiene solución única?', '¿Es deducible Sin backtracking?'),
 	mostrarInfoBorde('├', '┤', '┼'),
-	maplist(mostrarInfo, Informacion),
+	maplist(mostrarInfo, PredefInfo),
+	mostrarInfoBorde('├', '┤', '┼'),
+	maplist(mostrarInfo, NoPredefInfo),
 	mostrarInfoBorde('└', '┘', '┴').
 
 %
@@ -473,6 +496,15 @@ nn(11, NN) :- armarNono([[1, 1, 1, 1], [3, 3], [1, 1], [1, 1, 1, 1], [8], [6], [
 nn(12, NN) :- armarNono([[9], [1, 1, 1, 1], [10], [2, 1, 1], [1, 1, 1, 1], [1, 10], [1, 1, 1], [1, 1, 1], [1, 1, 1, 1, 1], [1, 9], [1, 2, 1, 1, 2], [2, 1, 1, 1, 1], [2, 1, 3, 1], [3, 1], [10]], [[], [9], [2, 2], [3, 1, 2], [1, 2, 1, 2], [3, 11], [1, 1, 1, 2, 1], [1, 1, 1, 1, 1, 1], [3, 1, 3, 1, 1], [1, 1, 1, 1, 1, 1], [1, 1, 1, 3, 1, 1], [3, 1, 1, 1, 1], [1, 1, 2, 1], [11], []], NN).
 nn(13, NN) :- armarNono([[2], [1,1], [1,1], [1,1], [1], [], [2], [1,1], [1,1], [1,1], [1]], [[1], [1,3], [3,1,1], [1,1,3], [3]], NN).
 nn(14, NN) :- armarNono([[1,1], [1,1], [1,1], [2]], [[2], [1,1], [1,1], [1,1]], NN).
+
+% EJEMPLOS DE DISCORD
+nn(100, NN) :- armarNono([[4],[3],[2,1],[1,3],[1,1],[3],[2]], [[4],[3],[2,1],[1,3],[1,1],[3],[2]], NN).
+nn(101, NN) :- armarNono([[2],[4,1],[1,1],[2,1,2],[9],[7,1],[9],[6,2],[4,2],[5]], [[1],[1,4],[2,6],[2,7],[1,6],[8],[1,4,1],[4,2],[2,3],[4]], NN).
+
+% EJEMPLOS DE NONOGRAMS.ORG
+nn(200, NN) :- armarNono([[1],[2],[3],[1,3],[3,1],[2,5],[1,2,1],[1,1,7],[2,2,1],[2,1,8],[1,1,2,1],[1,1,1,9],[2,1,2,1],[17],[1],[20],[1,1,1,1,1,1,1],[2,2,2,2,2,3],[3,2],[12]],[[1],[2],[1,1,1],[1,1,2],[3,2,1],[2,2,1,3],[3,1,1,1,1,1],[2,1,1,2,2,1],[3,1,1,1,1,1,1,1],[2,1,1,1,1,2,1,1,1],[17,1],[2,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],[2,1,1,1,1,2,1],[1,1,1,1,1,1,1,1],[2,1,1,1,1,1,1],[3,1,1,2,2],[3,1,1,2],[3,1,1],[3]],NN).
+
+% EJEMPLO DE DISCORD
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                              %
