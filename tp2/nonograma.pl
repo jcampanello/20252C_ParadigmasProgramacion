@@ -28,9 +28,14 @@ replicar(E, N, L) :- length(L, N), maplist(=(E), L).
 % Ejercicio 3
 %! transponer(+M, -MT)
 transponer(M, MT) :-
-	matriz(_, C, M),
-	matriz(C, 0, MT0),
-	foldl(agregar_a_columna, M, MT0, MT).
+	matriz(_, C, M),										% identificamos las cant columnas de M
+	matriz(C, 0, MT0), 										% la transpuesta tiene C filas (inicalmente vacías)
+	foldl(agregar_a_columna, M, MT0, MT). 					% plegamos la matriz inicial, esto genera la transpuesta
+
+% AUXILIAR - recibe una fila de la matriz M y toma cada elemento y lo agrega en la fila
+% correspondiente de la matriz transpuesta
+%
+%! agregar_a_columna(+FilaOriginal, +TranspuestaVacia, -MatrizTranspuesta)
 agregar_a_columna([], [], []).
 agregar_a_columna([HR | TR], [HM0 | TM0], [HMT | TMT]) :-
 	agregar_a_columna(TR, TM0, TMT),
