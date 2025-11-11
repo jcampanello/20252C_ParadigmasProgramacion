@@ -19,7 +19,9 @@ matriz(F, C, M) :-
 % Ejercicio 2
 
 %! replicar(?E, ?N, ?L)
-replicar(E, N, L) :- length(L, N), maplist(=(E), L).
+replicar(E, N, L) :-
+	length(L, N),
+	maplist(=(E), L).
 
 
 % --------------------------------------------------------------------------------
@@ -161,9 +163,15 @@ resolverNaive(nono(_, RS)) :-
 % de cada fila corresponden a una celda de la restriccion. Por eso calculamos la transpuesta.
 % Hecho esto, cada fila de la matriz transpuesta corresponde a una celda de la restriccion.
 % El siguiente paso es armar un "set" con los valores posibles de cada fila y verificar si
-% ese set tiene longitud 0, 1 o 2. Si tiene un único elemento, entonces la celda de la
+% ese set tiene longitud 0, 1 o >2. Si tiene un único elemento, entonces la celda de la
 % restriccion siempre estará pintada con ese elemento (x u o) y se puede considerar como
 % una celda obligatoria.
+%
+% IMPORTANTE: mirar la cardinalidad del conjunto de valores que puede tomar una columna
+% nos pareció una forma más natural de decidir si la pintada es obligatoria. El caso
+% opuesto es hacer algún tipo de reducción mirando las filas e ir acumulando o mirando
+% casos y comparando valores individuales, pero lo que importa es la cardinalidad. Por
+% este motivo no vimos necesidad de utilizar el predicado combinarCelda provisto.
 %
 %! pintarObligatorias(+R)
 pintarObligatorias(r(Restric, Linea)) :-
@@ -271,30 +279,22 @@ resolverDeduciendoCont(NN, FV) :-
 	FV > 0, 																% hace disjunto el predicado anterior
 	restriccionConMenosLibres(NN, r(Restric, Linea)), 						% buscamos una restricción mínima
 	%
-	% aquí realizamos un CUT porque puede haber más de una línea (con variables
-	% no instanciadas) y con la mínima cantidad de restricciones. La idea del
-	% algoritmo es pensar que cualquiera de las restricciones con cantidad mínima
-	% es equivalente, porque las otras restricciones serán deducidas de forma
-	% simple o serán tratadas más adelante. Si no se realiza el cut, luego de
-	% resolver usando la restricción elegida, se usaría otra restricción mínima
-	% en el mismo punto, generando otra solución equivalente (pero explorada por
-	% otra rama del árbol).
+	% aquí realizamos un CUT porque puede haber más de una línea/columna (con
+	% variables no instanciadas) y con la mínima cantidad de restricciones. La
+	% idea del algoritmo es pensar que cualquiera de las restricciones con
+	% cantidad mínima es equivalente, porque las otras restricciones serán
+	% deducidas de forma simple o serán tratadas más adelante. Si no se realiza
+	% el cut, luego de resolver usando la restricción elegida, se usaría otra
+	% restricción mínima en el mismo punto, generando otra solución equivalente
+	% (pero explorada por otra rama del árbol de búsqueda).
 	%
 	!,
 	findall(Linea, pintadasValidas(r(Restric, Linea)), PosiblesLineas), 	% buscamos todas las líneas posibles
 	member(LineaPosible, PosiblesLineas), 									% elegimos las posibles, de a una
-	Linea = LineaPosible, 													% unificamos => falla+próxima línea o continúa
-	deducirVariasPasadas(NN), 												% trata de deducir (o llegar a una inconsistencia)
-	cantidadVariablesLibresNono(NN, FV1), 									% itera
-	resolverDeduciendoCont(NN, FV1).
-
-% IDEA: este predicado se creó como un "wrapper" que opera sobre el nonograma (en lugar de sólo
-% la matriz, como lo hace cantidadVariablesLibres). Usar este predicado evita la necesidad de
-% abrir el nonograma dentro de resolverDeduciendoCont.
-%
-%! cantidadVariablesLibresNono(+NN, -N)
-cantidadVariablesLibresNono(nono(M,_), N) :-
-	cantidadVariablesLibres(M, N).
+	Linea = LineaPosible, 													% unificamos, esto puede:
+																			% - fallar y mira el proximo (via member)
+																			% - tener exito y entonces sigue deduciendo
+	resolverDeduciendo(NN). 												% volvemos a tratar de deducir varias pasadas
 
 
 % --------------------------------------------------------------------------------
@@ -305,9 +305,12 @@ cantidadVariablesLibresNono(nono(M,_), N) :-
 % IDEA: obtenemos todas las posibles soluciones (únicas) y verificamos que se haya
 % obtenido una sola solución.
 %
+% IMPORTANTE: aquí usamos bagof para obtener soluciones únicas (si hubiera repetidas
+% es un problema en otro punto y no queremos confundir repetidas con únicas).
+%
 %! solucionUnica(+NN)
 solucionUnica(nono(M, R)) :-
-	findall(M, resolverDeduciendo(nono(M, R)), Soluciones),
+	bagof(M, resolverDeduciendo(nono(M, R)), Soluciones),
 	length(Soluciones, 1).
 
 
