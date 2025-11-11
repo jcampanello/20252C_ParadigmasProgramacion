@@ -238,7 +238,6 @@ test(resolverNaive, [nondet]) :-
           [o,x,x,o]]
         ]).
 
-/*
 test(resolverNaive, [nondet]) :-
     nn(10, NN), NN=nono(M, _),
     soluciones(M, resolverNaive(NN),
@@ -298,23 +297,6 @@ test(resolverNaive, [nondet]) :-
           [o,o,o,o,x,x,x],
           [o,o,o,o,o,x,x]]
         ]).
-
-% EJEMPLO TOMADO DE DISCORD
-test(resolverNaive, [nondet]) :-
-    nn(101, NN), NN=nono(M, _),
-    soluciones(M, resolverNaive(NN),
-        [[[o,o,x,x,o,o,o,o,o,o],
-          [o,x,x,x,x,o,x,o,o,o],
-          [x,o,o,o,o,x,o,o,o,o],
-          [o,o,x,x,o,x,o,x,x,o],
-          [o,x,x,x,x,x,x,x,x,x],
-          [o,x,x,x,x,x,x,x,o,x],
-          [o,x,x,x,x,x,x,x,x,x],
-          [o,x,x,x,x,x,x,o,x,x],
-          [o,o,x,x,x,x,o,x,x,o],
-          [o,o,o,x,x,x,x,x,o,o]]
-        ]).
-*/
 
 %
 % TESTS pintarObligatorias

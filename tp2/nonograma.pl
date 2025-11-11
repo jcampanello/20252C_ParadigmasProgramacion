@@ -2,9 +2,16 @@
 
 % --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
 %
 % Ejercicio 1
-
+%
+% IDEA: se verifica primero que la matriz tenga la cantidad de filas indicadas (F).
+% Luego se toma la primera fila de la matriz y se verifica que tenga la cantidad
+% de columnas indicadas (C).
+% Finalmente, se verifica que todas las filas de la matriz tengan la misma longitud
+% que la primera fila.
 %! matriz(+F, +C, -M)
 matriz(F, C, M) :-
 	length(M, F),
@@ -15,9 +22,14 @@ matriz(F, C, M) :-
 
 % --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
 %
 % Ejercicio 2
-
+%
+% IDEA: se verifica que la lista L tenga longitud N. Luego se verifica que todos
+% los elementos de la lista unifiquen con el elemento pasado (E)
+%
 %! replicar(?E, ?N, ?L)
 replicar(E, N, L) :-
 	length(L, N),
@@ -26,8 +38,16 @@ replicar(E, N, L) :-
 
 % --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
 %
 % Ejercicio 3
+%
+% IDEA: se identifica la cantidad de columnas de la matriz dada y se crea una matriz
+% inicial con la misma cantidad de filas vacías.
+% Luego se hace un fold de la matriz dada, donde cada fila se va separando en las
+% columnas, creando al final la matriz transpuesta.
+%
 %! transponer(+M, -MT)
 transponer(M, MT) :-
 	matriz(_, C, M),										% identificamos las cant columnas de M
@@ -62,97 +82,123 @@ zipR([R|RT], [L|LT], [r(R,L)|T]) :- zipR(RT, LT, T).
 
 % --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
 %
 % Ejercicio 4
 %
-% Primero se hacen algunas cuentas, para saber cual es la cantidad de celdas pintadas,
-% espacios forzados y rango de espacio libre para asignar.
-% Luego se crea una lista con el punto de inicio para los espacios (si hay N restricciones
-% se crean N+1 espacios: N-1 entre pintadas y 2 para inicio y fin). El primero y último
-% tienen punto de inicio 0 (son opcionales), los intermedios tienen punto de inicio 1
-% (se requiere un mínimo de un espacio entre celdas pintadas).
-% Luego se realiza un Generate and Test. Generate genera todas las posibles pintadas
-% considerando que cada posible espacio va de la cantidad mínima al máximo disponible.
-% Esto puede generar líneas posibles de mayor longitud, pero estos casos se eliminan
-% en la parte Test (se trata de unificar con la Línea de la restricción). Esta
-% unificación verifica la longitud y además 
+% IDEA: Primero se hacen algunas cuentas, para saber cual es la longitud total de la
+% línea, la longitud de las restricciones, la cantidad de celdas pintadas y con eso,
+% se calcula el máximo de espacio entre celdas pintadas.
+%
+% Utiliza un esquema de Generate and Test
+%
+% El paso Generate, invoca a dos predicados de generación:
+% 1: generarPosibles: 		se encarga de tomar las restricciones e ir armando la línea.
+% 							Para esto toma una pintada, y le prefija una cantidad de
+% 							espacios (entre 1 y máximo espacio entre celdas). Es recursiva
+% 							(genera) primero la cola, luego agrega espacio y celda actual.
+% 							Tiene dos casos base. Lista vacía (genera todos espacios) y una
+% 							sola celda (pinta dicha celda). En cada paso verifica que la
+% 							longitud generada no supere el maximo. Esto es para descartar
+% 							rápido casos que no serán viables.
+% 2: agregarEspaciosBorde: 	toma una posible Linea y si la misma no llega a la longitud
+% 							esperada, le agrega espacios a izquierda y derecha. Para esto
+% 							calcula la cantidad total de espacio a agregar y utiliza
+% 							append para separar en prefijo y postfijo y armar la línea
+% 							final.
+%
+% El paso Test, verifica que la línea posible tenga la longitud esperada y luego intenta
+% unificar con la línea que se tiene (que puede tener variables o celdas ya pintadas).
 %
 %! pintadasValidas(+R)
 pintadasValidas(r(Restric, Linea)) :-
 	length(Linea, LTotal),
 	length(Restric, LRestric),
 	sum_list(Restric, CPintada),
-	CLibre is LTotal - CPintada,
-	CLibre >= 0,
-	espaciosMinimos(LRestric, EspaciosMinimos),
+	MaxEspacio is max(LTotal - CPintada - (LRestric - 1) + 1, 0),
 	% generate
-	generarPosibles(EspaciosMinimos, Restric, CLibre, LTotal, Posible),
+	generarPosibles(Restric, LTotal, MaxEspacio, LineaPosible),
+	agregarEspaciosBorde(LTotal, LineaPosible, Posible),
 	% test (verificamos la longitud y la unificación chequea variables con valor y el resto)
 	same_length(Linea, Posible),
 	Posible = Linea.
 
-% AUXILIAR - arma una lista conteniendo el punto de inicio para cada espacio
-% (0 para inicial/final y 1 para el resto). Si hay N pintadas (restricciones)
-% quedan N+1 espacios.
+% AUXILIAR - primera parte del proceso de generación de posibilidades. Es recursivo (genera
+% primero la cola), le prefija espacios (entre 1 y MaxEspacio) y agrega la pintada actual.
+% Tiene dos casos base:
+% 1: lista de restricciones vacia (pinta todo espacios)
+% 2: lista de restricciones con una pintada (genera sólo esa pintada)
 %
-%! espaciosMinimos(+CantRestric, -Espacios)
-espaciosMinimos(0, [ 0 ]).
-espaciosMinimos(LRestrict, Espacios) :-
-	LRestrict > 0,
-	Internos is LRestrict - 1,
-	replicar(1, Internos, EspaciosInternos),
-	append( [ 0 ], EspaciosInternos, EspaciosIniciales),
-	append(EspaciosIniciales, [ 0 ], Espacios).
-
-% AUXILIAR - genera una posible combinacion para la linea. Los parámetros del predicado son:
-% - lista de puntos de inicio (N+1) para los espacios (0 o 1), que pueden crecre hasta el valor de Rango
-% - lista de pintadas (N) con las longitudes a pintar
-% - longitud maxima de un segmento de espacios
-% - longitud máxima de la línea
-% - posible línea
+% IMPORTANTE: si bien no es estrictamente necesario, luego de cada paso se realiza la
+% dverificación e que la longitud generada hasta ese punto es válida. Esto permite descartar
+% casos que fallarán de forma rápida. Esto genera mucha diferencia en la corrida de tests
+% y agilizó el trabajo en el TP (genera una diferencia de decenas de minutos a decenas de
+% segundos).
 %
-% Lo que hace es consumir en cada paso un par de elementos (inicio mínimo del espacio y una pintada) y
-% genera recursivamente lo que sigue (consumiendo de a pares) hasta que queda sólo un elemento de inicio
-% de espacio (el espacio final). En este caso, sólo genera los posibles espacios.
-% En cada paso recursivo entonces toma la cola generada y le agrega la pintada y los posibles espacios
-% adelante. En varios puntos se va chequeando longitud total, para reducir esfuerzo de generación
-% que se sabe no será válido.
+%! generarPosibles(+Restric, +LongTotal, +MaxEspacio, -LineaPosible)
+generarPosibles([], LTotal, _, LineaPosible) :-
+	replicar(o, LTotal, LineaPosible).
+generarPosibles([N], _, _, LineaPosible) :-
+	replicar(x, N, LineaPosible).
+generarPosibles( [N | T], LTotal, MaxEspacio, LineaPosible) :-
+	generarPosibles(T, LTotal, MaxEspacio, LineaTail),
+	agregarEspacioInterno(MaxEspacio, LineaTail, LineaTailConEspacio),
+	replicar(x, N, Pintada),
+	append(Pintada, LineaTailConEspacio, LineaPosible),
+	length(LineaPosible, LLineaPosible),
+	LLineaPosible =< LTotal.
+
+% AUXILIAR - Toma una línea posible (que comienza y termina con celdas pintadas) y le prefija
+% entre 1 y MaxEspacio espacios. Esta predicado se debe usar en la situación en que se quiere
+% tomar un fragmento de línea pintada y agregar adelante una nueva pintada (requiere espacios
+% entre pintadas).
 %
-%! generarPosibles(+ListaEspacios, +ListaPintadas, +MaximoEspacio, +Longitud, -Posible).
-generarPosibles( [ X ], [ ], MaximoEspacio, _, Posible) :-
-	espaciosPrevios(X, MaximoEspacio, Posible).
-generarPosibles( [ HE | TE ], [ HR | TR ], MaximoEspacio, Longitud, Posible) :-
-	generarPosibles(TE, TR, MaximoEspacio, Longitud, Resto),
-	replicar(x, HR, Pintadas),
-	append(Pintadas, Resto, PosibleTail),
-	length(PosibleTail, LPosibleTail),
-	LPosibleTail + HE =< Longitud,
-	espaciosPrevios(HE, MaximoEspacio, Espacios),
-	append(Espacios, PosibleTail, Posible),
-	length(Posible, LPosible),
-	LPosible =< Longitud.
+%! agregarEspacioInterno(+MaxEspacio, +Tail, +TailConEspacios)
+agregarEspacioInterno(MaxEspacio, LineaTail, LineaTailConEspacio) :-
+	between(1, MaxEspacio, Len),
+	replicar(o, Len, Espacios),
+	append(Espacios, LineaTail, LineaTailConEspacio).
 
-% AUXILIAR - genera las posibilidades de espacios previos. Toma una cantidad inicial y una cantidad
-% máxima y para cada entero dentro de ese rango, genera una lista con esa cantidad de espacios.
-% La cantidad inicial puede ser 0 (para el primer y último espacio) o uno, para los espacios
-% intermedios.
+% AUXILIAR - Recibe una LineaPosible y si tiene menor longitud que LTotal, le agrega
+% espacios (adelante y atrás) hasta completar. Calcula la cantidad de relleno y genera
+% una lista de espacios de dicha cantidad. Utiliza append para generar las sublistas
+% de prefijo y postfijo para la LineaPosible. Usa append3 (predicado propio) para armar
+% la línea posible final.
 %
-%! espaciosPrevios(+CantInicial, +CantMaxima, ?Espacios)
-espaciosPrevios(CantInicial, CantMaxima, Espacios) :-
-	between(CantInicial, CantMaxima, Len),
-	replicar(o, Len, Espacios).
+%! agregarEspaciosBorde(+LTotal, +LineaPosible, -Posible)
+agregarEspaciosBorde(LTotal, LineaPosible, Posible) :-
+	length(LineaPosible, CurLen),
+	CantRelleno is max(LTotal - CurLen, 0),
+	replicar(o, CantRelleno, Relleno),
+	append(Prefix, Postfix, Relleno),
+	append3(Prefix, LineaPosible, Postfix, Posible).
+
+% AUXILIAR - toma 3 listas y las concatena en una sola
+%
+%! append3(+Prefix, +Lista, +Postfix, -Resultado)
+append3(Prefix, Lista, Postfix, Resultado) :-
+	append(Prefix, Lista, ParteIzq),
+	append(ParteIzq, Postfix, Resultado).
 
 
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
 %
 % Ejercicio 5
+%
+% IDEA: intentar con las pintadas válidas de cada restriccion
+%
 %! resolverNaive(+NN)
 resolverNaive(nono(_, RS)) :-
 	maplist(pintadasValidas, RS).
 
 
 
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
 %
@@ -212,6 +258,8 @@ combinarCelda(A, B, _) :- nonvar(A), nonvar(B), A \== B.
 
 % --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
 %
 % Ejercicio 7
 %
@@ -241,6 +289,8 @@ deducirVariasPasadasCont(NN, A, B) :- A =\= B, deducirVariasPasadas(NN).
 
 % --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
 %
 % Ejercicio 8
 %
@@ -255,6 +305,8 @@ unaRestriccion(RS, R, FV) :- member(R, RS), R = r(_, L), cantidadVariablesLibres
 
 
 
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
 %
@@ -299,6 +351,8 @@ resolverDeduciendoCont(NN, FV) :-
 
 % --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
 %
 % Ejercicio 10
 %
@@ -317,10 +371,17 @@ solucionUnica(nono(M, R)) :-
 
 % --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
 %
 % Ejercicio 11 - INICIO
 %
 % intento de automatizar el análisis
+%
+% IMPORTANTE: decidimos implementar esta automatización para no tener que correr
+% a mano mútiples veces las mismas consultas. Cumple las indicaciones del TP salvo
+% por un predicado copiado de internet para obtener "succeeded" o "failed" sobre
+% los predicados solucionUnica (del TP) y resuelveSinBacktraking.
 
 %
 % Resuelve la tabla del ejercicio 11. Busca primero todos los números de nonograma
@@ -483,6 +544,7 @@ stringJustified(S, Size, JustS) :-
 %
 % --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
