@@ -379,9 +379,7 @@ solucionUnica(nono(M, R)) :-
 % intento de automatizar el análisis
 %
 % IMPORTANTE: decidimos implementar esta automatización para no tener que correr
-% a mano mútiples veces las mismas consultas. Cumple las indicaciones del TP salvo
-% por un predicado copiado de internet para obtener "succeeded" o "failed" sobre
-% los predicados solucionUnica (del TP) y resuelveSinBacktraking.
+% a mano mútiples veces las mismas consultas. Cumple las indicaciones del TP.
 
 %
 % Resuelve la tabla del ejercicio 11. Busca primero todos los números de nonograma
@@ -412,8 +410,8 @@ esNonoPredefinido(N) :- N < 100.
 realizaAnalisis(Numero, nonoInfo(Numero, (F, C), SolucionUnica, SinBacktracking)) :-
     nn(Numero, NN),
     tamaño(NN, F, C),
-	check_success_failure(solucionUnica(NN), SolucionUnica),
-	check_success_failure(resuelveSinBacktraking(NN), SinBacktracking).
+	successOrFailure(solucionUnica(NN), SolucionUnica),
+	successOrFailure(resuelveSinBacktraking(NN), SinBacktracking).
 
 %
 % IDEA: Obtiene el tamaño de un nonograma. Es diferente al provisto en el enunciado porque
@@ -439,15 +437,12 @@ resuelveSinBacktraking(nono(M, R)) :-
 	FV =:= 0.
 
 %
-% IDEA: Buscamos en internet la forma de obtener un booleano para saber si un predicado
-% tuvo éxito o falló y obtuvimos este código
+% IDEA: Si puede cumplir el objetivo, entonces retorna éxito (cumple el objetivo y cut, para que no
+% siga). Si no pudo, entonces indica falla.
 %
-%! check_success_failure(+Goal, -Result)
-check_success_failure(Goal, Result) :-
-    (   call(Goal)
-    ->  Result = succeeded
-    ;   Result = failed
-    ).
+%! successOrFailure(+Goal, -Result)
+successOrFailure(Goal, succeeded) :- Goal, !.
+successOrFailure(_, failed).
 
 %
 % Convierte succceded o failed a un string (Si, No)
