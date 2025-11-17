@@ -1,4 +1,5 @@
 
+
 % ------------------------------------------------
 % ------------------------------------------------
 % ------------------------------------------------
@@ -280,6 +281,9 @@ reverse_p8([], []).
 reverse_p8(L, R) :- append([H], T, L), reverse_p8(T, TR), append(TR, [H], R).
 
 /*
+
+PEND
+
 ?-  reverse_p8([a,b,c], [c,b,a]).
     |
     +-- { L := [a,b,c], R := [c,b,a] }
@@ -375,7 +379,7 @@ valores_planos(H, Plana) :- is_list(H), aplanar(H, Plana).
 %
 % EJERCICIO 7
 %
-% Definir los siguientes predicados, usando member y/o append según sea conveniente:
+% Definir los siguientes predicados, usando member y / o append según sea conveniente:
 
 
 
@@ -471,4 +475,798 @@ repartoSinVacías(L, LListas) :- append(Parte, Resto, L), Parte \= [], repartoSi
 %   P = [4, 5] ;
 %   false.
 %
+
+%! parteQueSuma(+L, +S, -P)
+parteQueSuma(_, 0, []).
+parteQueSuma(L, S, P) :- partes(L, C), sum_list(C, Sum), S is Sum, P = C.
+
+%! partes(+L, -C)
+partes([], []).
+partes([H|T], C) :- partes(T, CTail), append([H], CTail, C).
+partes([_|T], C) :- partes(T, C).
+
+
+
+% ------------------------------------------------
+% ------------------------------------------------
+% ------------------------------------------------
+%
+% INSTANCIACIÓN Y REVERSIBILIDAD
+%
+
+% ------------------------------------------------
+%
+% EJERCICIO 9
+%
+% Considerar el siguiente predicado:
+%
+%   desde(X, X).
+%   desde(X, Y) :- N is X + 1, desde(N, Y).
+%
+
+desde(X, X).
+desde(X, Y) :- N is X + 1, desde(N, Y).
+
+%
+% Esto genera los números enteros desde X hacia +Infinito
+%
+
+% ---------------------------
+%
+% i. ¿Cómo deben instanciarse los parámetros para que el predicado funcione? (Es decir, para
+% que no se cuelgue ni produzca un error). ¿Por qué?
+%
+
+% Se debe instanciar el parámetro X y dejar Y libre.
+% Si se instancia un valor de Y que es mayor que X entonces devolverá un true y luego se va a colgar,
+% porque N no tiene un corte por N == Y.
+% Si se instancia un valor de Y que es manor que X, entonces se colgará (porque N crece, y nunca va
+% a poder llegar al valor de Y).
+
+% ---------------------------
+%
+% ii. Dar una nueva versión del predicado que funcione con la instanciación desdeReversible(+X, ?Y),
+% tal que si Y está instanciada, sea verdadero si Y es mayor o igual que X, y si no lo está genere
+% todos los Y de X en adelante.
+%
+
+%! desdeReversible(+X, ?Y)
+desdeReversible(X, Y) :- nonvar(Y), Y >= X.
+desdeReversible(X, Y) :- var(Y), desde(X, Y).
+
+
+
+% ------------------------------------------------
+%
+% EJERCICIO 10
+%
+% Definir el predicado intercalar(L1, L2, L3), donde L3 es el resultado de intercalar uno a uno los
+% elementos de las listas L1 y L2. Si una lista tiene longitud menor, entonces el resto de la lista
+% más larga es pasado sin cambiar. Indicar la reversibilidad, es decir si es posible obtener L3 a
+% partir de L1 y L2, y viceversa.
+%
+% Ejemplo: intercalar([a,b,c], [d,e], [a,d,b,e,c]).
+%
+
+%! intercalar(?L1, ?L2, ?L3)
+intercalar([], L2, L2).
+intercalar(L1, [], L1) :- length(L1, L1Len), L1Len > 0.         % excluyente con el caso previo
+intercalar([H1|T1], [H2|T2], [H1,H2|L3]) :- intercalar(T1, T2, L3).
+
+% Si es reversible. En particular, hay 4 casos diferentes:
+%
+% - L1 y L2 definidos, L3 no:   aquí el predicado calcula L3 (es el caso que cumple el requerimiento)
+% - L1 y L3 definidos, L2 no:   en este caso, los elementos de L3 deben ir correspondiendo al head de
+%                               L1 y L2. En la medida que haya coincidencia, el predicado recursivo
+%                               aplica, puede separar y por lo tanto saber cuando aplica el resto
+% - L2 y L3 definidos, L1 no:   este caso es similar al anterior
+% - L3 definido, L1 y L2 no:    el predicado va a generar todas las posibles opciones de L1 y L2 que
+%                               forman L3. Mirará primero los casos vacíos y luego comenzará a
+%                               separar los dos primeros elementos (uno a cada lista) y luego generando
+%                               los casos de forma recursiva (tomando los dos triviales, que acumulan
+%                               todo el resto en una de las listas y luego tomando otros dos elementos).
+%
+
+
+
+% ------------------------------------------------
+%
+% EJERCICIO 11
+%
+% Un árbol binario se representará en Prolog con:
+%
+%   - nil, si es vacío.
+%   - bin(izq, v, der), donde v es el valor del nodo, izq es el subárbol izquierdo y der es el subárbol derecho.
+%
+% Definir predicados en Prolog para las siguientes operaciones: vacío, raiz, altura y cantidadDeNodos. Asumir
+% siempre que el árbol está instanciado.
+%
+
+%! bin(?I, ?R, ?D)
+bin(_, _, _).
+
+%! arbolBacío(?A)
+arbolVacío(nil).
+
+%! arbolRaiz(?A, ?R)
+arbolRaiz(bin(_, R, _), R).
+
+%! arbolAltura(+A, ?H)
+arbolAltura(nil, 0).
+arbolAltura(bin(I, _, D), H) :- arbolAltura(I, HI), arbolAltura(D, HD), H is max(HI, HD) + 1.
+
+%! arbolCantidadDeNodos(A, Q)
+arbolCantidadDeNodos(nil, 0).
+arbolCantidadDeNodos(bin(I, _, D), Q) :- arbolCantidadDeNodos(I, QI), arbolCantidadDeNodos(D, QD), Q is QI + QD + 1.
+
+
+
+% ------------------------------------------------
+%
+% EJERCICIO 12
+%
+% Definir los siguientes predicados, utilizando la representación de árbol binario definida en el ejercicio 11:
+
+
+% ---------------------------
+%
+% i. inorder(+AB, -Lista), que tenga éxito si AB es un árbol binario y Lista la lista de sus nodos según el
+% recorrido inorder.
+
+%! arbolInOrder(+AB, -Lista)
+arbolInOrder(nil, []).
+arbolInOrder(bin(I, R, D), Lista) :- arbolInOrder(I, ListaI), arbolInOrder(D, ListaD), append(ListaI, [R|ListaD], Lista).
+
+
+% ---------------------------
+%
+% ii. arbolConInorder(+Lista,-AB), versión inversa del predicado anterior.
+
+%! arbolConInorder(+Lista, -AB)
+arbolConInOrder([], nil).
+arbolConInOrder(Lista, bin(ABI, R, ABD)) :-
+    % separamos posibles casos de lo que va a izq, der y la raiz
+    append(ListaI, ListaResto, Lista), append([R], ListaD, ListaResto),
+    % generamos posibles casos de izq y der
+    arbolConInOrder(ListaI, ABI), arbolConInOrder(ListaD, ABD).
+
+
+% ---------------------------
+%
+% iii. aBB(+T), que será verdadero si T es un árbol binario de búsqueda.
+
+%! ABB(+A)
+aBB(nil).
+aBB(bin(I, R, D)) :-
+    arbolInOrder(I, ListaI), append(ListaI, [R], ListaIR), listaAscendente(ListaIR),
+    arbolInOrder(D, ListaD), listaAscendente([R|ListaD]).
+
+%! listaAscendente(+L)
+listaAscendente([]).
+listaAscendente([_]).
+listaAscendente([H1,H2|T]) :- H1 =< H2, listaAscendente([H2|T]).
+
+
+% ---------------------------
+%
+% iv. aBBInsertar(+X, +T1, -T2), donde T2 resulta de insertar X en orden en el árbol T1.
+% Este predicado ¿es reversible en alguno de sus parámetros? Justificar.
+
+%! aBBInsertar(+X, +T1, -T2)
+aBBInsertar(X, nil, bin(nil, X, nil)).
+aBBInsertar(X, bin(I, R, D), T2) :- X < R, aBBInsertar(X, I, I2), T2 = bin(I2, R, D).
+aBBInsertar(X, bin(I, R, D), T2) :- R =< X, aBBInsertar(X, D, D2), T2 = bin(I, R, D2).
+
+
+
+
+% ------------------------------------------------
+% ------------------------------------------------
+% ------------------------------------------------
+%
+% GENERATE & TEST
+%
+
+% ------------------------------------------------
+%
+% EJERCICIO 13
+%
+% Definir el predicado coprimos(-X,-Y), que genere uno a uno todos los pares de números
+% naturales coprimos (es decir, cuyo máximo común divisor es 1), sin repetir resultados.
+% Usar la función gcd del motor aritmético.
+%
+
+%! coprimos(-X, -Y)
+coprimos(X, Y) :- nonvar(X), nonvar(Y), 1 is gcd(X, Y).
+coprimos(X, Y) :- nonvar(X), var(Y), coprimos(Y, X).
+coprimos(X, Y) :- var(X), desde(1, Cota), between(1, Cota, X), Y is Cota - X, Y > 0, 1 is gcd(X, Y).
+
+
+% ------------------------------------------------
+%
+% EJERCICIO 14
+%
+% Un cuadrado semi-mágico es una matriz cuadrada de naturales (incluido el cero) donde todas las filas
+% de la matriz suman lo mismo. Por ejemplo:
+%
+%       1 3 0
+%       2 2 0 todas las filas suman 4
+%       1 1 2
+%
+% Representamos la matriz como una lista de filas, donde cada fila es una lista de naturales. El ejemplo
+% anterior se representaría de la siguiente manera:
+%
+%       [ [1,3,0], [2,2,0], [1,1,2] ]
+%
+
+
+% ---------------------------
+%
+% i. Definir el predicado cuadradoSemiMagico(+N, -XS). El predicado debe ir devolviendo matrices (utilizando
+% la representación antes mencionada), que sean cuadrados semi-mágicos de dimensión N * N. Dichas matrices
+% deben devolverse de manera ordenada: primero aquellas cuyas filas suman 0, luego 1, luego 2, etc. No es
+% necesario utilizar la técnica Generate & Test.
+%
+% Ejemplo: cuadradoSemiMagico(2, X). devuelve:
+%
+% X = [[0, 0], [0, 0]] ;
+% X = [[0, 1], [1, 0]] ; X = [[1, 0], [1, 0]] ; X = [[0, 1], [0, 1]] ; X = [[1, 0], [0, 1]] ;
+% X = [[0, 2], [0, 2]] ; etc
+%
+
+%! cuadradoSemiMagico(+N, -XS)
+cuadradoSemiMagico(N, XS) :- desde(0, Suma), filasSemiMagicas(N, N, Suma, XS).
+
+%! filasSemiMagicas(+N, +Suma, -Filas).
+filasSemiMagicas(_, 0, _, []).
+filasSemiMagicas(N, Actual, Suma, Filas) :-
+    Actual > 0,
+    filaSemiMagica(N, Suma, Fila),
+    ActualResto is Actual - 1,
+    filasSemiMagicas(N, ActualResto, Suma, FilasResto),
+    append([Fila], FilasResto, Filas).
+
+%! filaSemiMagica(+N, +Suma, -Fila)
+filaSemiMagica(0, _, []).
+filaSemiMagica(N, Suma, Fila) :-
+    N > 0,
+    between(0, Suma, Valor),
+    SumaResto is Suma - Valor,
+    NResto is N - 1,
+    filaSemiMagica(NResto, SumaResto, FilaResto),
+    append([Valor], FilaResto, Fila),
+    sum_list(Fila, Total),
+    Total is Suma.
+
+
+% ---------------------------
+%
+% ii. Definir utilizando Generate & Test el predicado cuadradoMagico(+N, -XS), que instancia XS con cuadrados cuyas
+% filas y columnas suman todas un mismo valor.
+%
+
+%! matriz(+F, +C, -M)
+matriz(F, C, M) :-
+    length(M, F),
+    nth1(1, M, FirstRow),
+    length(FirstRow, C),
+    maplist(same_length(FirstRow), M).
+
+%! transponer(+M, -MT)
+transponer(M, MT) :-
+    matriz(_, C, M),                                        % identificamos las cant columnas de M
+    matriz(C, 0, MT0),                                      % la transpuesta tiene C filas (inicalmente vacías)
+    foldl(agregar_a_columna, M, MT0, MT).                   % plegamos la matriz inicial, esto genera la transpuesta
+
+%! agregar_a_columna(+FilaOriginal, +TranspuestaVacia, -MatrizTranspuesta)
+agregar_a_columna([], [], []).
+agregar_a_columna([HR | TR], [HM0 | TM0], [HMT | TMT]) :-
+    agregar_a_columna(TR, TM0, TMT),
+    append(HM0, [HR], HMT).
+
+
+
+%! cuadradoMagico(+N, -XS)
+cuadradoMagico(N, CSemiMag) :-
+    % generate
+    cuadradoSemiMagico(N, CSemiMag),
+    % test
+    columnasMagicas(CSemiMag).
+
+%! columnasMagicas(+CSemiMag)
+columnasMagicas(CSemiMag) :-
+    nth1(1, CSemiMag, FirstRow),
+    transponer(CSemiMag, CSemiMagTrans),
+    append([FirstRow], CSemiMagTrans, FilaYColumnas),
+    obtenerSumas(FilaYColumnas, Sumas),
+    list_to_set(Sumas, Set),
+    Set = [_].
+
+%! obtenerSumas(+Rows, -Sumas)
+obtenerSumas([], []).
+obtenerSumas([Row|Rest], Sumas) :- sum_list(Row, Suma), obtenerSumas(Rest, SumasRest), append([Suma], SumasRest, Sumas).
+
+
+
+% ------------------------------------------------
+%
+% EJERCICIO 15
+%
+% En este ejercicio trabajaremos con triángulos. La expresión tri(A,B,C) denotará el triángulo cuyos lados tienen
+% longitudes A, B y C respectivamente. Se asume que las longitudes de los lados son siempre números naturales.
+%
+% Implementar los siguientes predicados:
+
+
+% ---------------------------
+%
+% i. esTriángulo(+T) que, dada una estructura de la forma tri(A,B,C), indique si es un triángulo válido. En un
+% triángulo válido, cada lado es menor que la suma de los otros dos, y mayor que su diferencia (y obviamente mayor
+% que 0).
+
+%! esTriangulo(+T)
+esTriangulo(tri(A, B, C)) :-
+    A > 0, B > 0, C > 0,
+    A < B + C, A > abs(B - C),
+    B < A + C, B > abs(A - C),
+    C < A + B, C > abs(A - B).
+
+
+% ---------------------------
+%
+% ii. perímetro(?T, ?P), que es verdadero cuando T es un triángulo (válido) y P es su perímetro. No se deben generar
+% resultados repetidos (no tendremos en cuenta la congruencia entre triángulos: si dos triángulos tienen las mismas
+% longitudes, pero en diferente orden, se considerarán diferentes entre sí). El predicado debe funcionar para cualquier
+% instanciación de T y P (ambas instanciadas, ambas sin instanciar, una instanciada y una no; no es necesario que
+% funcione para triángulos parcialmente instanciados), debe generar todos los resultados válidos (sean finitos o
+% infinitos), y no debe colgarse (es decir, no debe seguir ejecutando infinitamente sin producir nuevos resultados).
+% Por ejemplo:
+%
+%   ?- perímetro(tri(3, 4, 5), 12).         → true.
+%   ?- perímetro(T, 5).                     → T = tri(1, 2, 2) ; T = tri(2, 1, 2) ; T = tri(2, 2, 1) ; false.
+%   ?- perímetro(tri(2, 2, 2), P).          → P = 6.
+%   ?- perímetro(T, P).                     → T = tri(1, 1, 1), P = 3 ; T = tri(1, 2, 2), P = 5 ; ...
+%
+
+%! perímetro(?T, ?P)
+perímetro(T, P) :- nonvar(T), esTriangulo(T), T = tri(A,B,C), P is A + B + C.
+perímetro(T, P) :- var(T), desde(3, P), generarTernas(P, A, B, C), esTriangulo(tri(A, B, C)), T = tri(A, B, C).
+
+%! generarTernas(+P, -A, -B, -C)
+generarTernas(P, A, B, C) :- between(0, P, A), Resto is P - A, between(0, Resto, B), C is P - A - B.
+
+% ---------------------------
+%
+% iii. triángulo(-T), que genera todos los triángulos válidos, sin repetir resultados.
+
+%! triángulo(-T)
+triángulo(T) :- perímetro(T, _).
+
+
+
+
+
+
+% ------------------------------------------------
+% ------------------------------------------------
+% ------------------------------------------------
+%
+% NEGACIÓN POR FALLA Y CUT
+%
+
+
+% ------------------------------------------------
+%
+% EJERCICIO 16
+%
+% A Ana le gustan los helados que sean a la vez cremosos y frutales. En una heladería de su barrio, se encontró
+% con los siguientes sabores:
+%
+
+frutal(frutilla).
+frutal(banana).
+frutal(manzana).
+cremoso(banana).
+cremoso(dulceDeLeche).
+cremoso(americana).
+cremoso(frutilla).
+
+%
+% Ana desea comprar un cucurucho con sabores que le gustan. El cucurucho admite hasta 2 sabores. Los siguientes
+% predicados definen las posibles maneras de armar el cucurucho.
+%
+
+leGusta(X) :- frutal(X), cremoso(X).
+cucurucho(X, Y) :- leGusta(X), leGusta(Y).
+
+
+% ---------------------------
+%
+% i. Escribir el árbol de búsqueda para la consulta
+%
+%   ?- cucurucho(X, Y).
+%
+
+
+/*
+
+PEND
+
+*/
+
+
+% ---------------------------
+%
+% ii. Indicar qué partes del árbol se podan al colocar un ! en cada ubicación posible en las definiciones de
+% cucurucho y leGusta.
+%
+
+
+leGusta_(X) :- frutal(X), !, cremoso(X).
+cucurucho_(X, Y) :- leGusta_(X), leGusta_(Y).
+
+leGusta__(X) :- frutal(X), cremoso(X).
+cucurucho__(X, Y) :- leGusta__(X), !, leGusta__(Y).
+
+leGusta___(X) :- frutal(X), !, cremoso(X).
+cucurucho___(X, Y) :- leGusta___(X), !, leGusta___(Y).
+
+
+
+
+% ------------------------------------------------
+%
+% EJERCICIO 17
+%
+
+
+% ---------------------------
+%
+% i. Sean los predicados P(?X) y Q(?X), ¿qué significa la respuesta a la siguiente consulta?
+%
+%   ?- P(Y), not(Q(Y)).
+%
+% La respuesta a esta consulta devolverá un Y que satisface P y no satisface Q.
+%
+
+
+% ---------------------------
+%
+% ii. ¿Qué pasaría si se invirtiera el orden de los literales en la consulta anterior?
+%
+% Si se invierte el orden de los predicados, va a verificar que ningún Y satisface Q
+% (potencialmente iterando infinitamente) y luego tratará de encontrar un Y que satisfaga
+% P.
+%
+% Esto ocurre porque el Y dentro del not no estaría asociado a un valor específico (hay que
+% buscar uno) y además, ese valor será independiente del valor para satisfacer P
+%
+
+
+% ---------------------------
+%
+% iii. Sea el predicado P(?X), ¿Cómo se puede usar el not para determinar si existe una
+% única Y tal que P(?Y) es verdadero?
+%
+% Se puede hacer:
+%
+%   ?- P(X), not(P(Y), Y \= X).
+%
+% Esto va a buscar un X que satisfaga P, y luego buscará un Y que satisfaga P con Y distinto de X.
+% Si esto último es satisfactorio, entonces el not fallará fallando la consulta. Si no se encuentra
+% un Y (distinto de X) que satisfaga P, entonces X es único.
+%
+
+
+% ------------------------------------------------
+%
+% EJERCICIO 18
+%
+% Definir el predicado corteMásParejo(+L,-L1,-L2) que, dada una lista de números, realiza el corte
+% más parejo posible con respecto a la suma de sus elementos (puede haber más de un resultado).
+% Por ejemplo:
+%
+%   ?- corteMásParejo([1,2,3,4,2], L1, L2).         → L1 = [1, 2, 3], L2 = [4, 2] ;
+%                                                     false.
+%   ?- corteMásParejo([1,2,1], L1, L2).             → L1 = [1], L2 = [2, 1] ;
+%                                                     L1 = [1, 2], L2 = [1] ;
+%                                                     false.
+%
+
+%! corteMásParejo(+L,-L1,-L2)
+corteMásParejo(L, L1, L2) :- generaCortes(L, L1, L2, Diff), not((generaCortes(L, _, _, LDiff), LDiff < Diff)).
+
+%! generaCortes(+L, -L1, -L2, -Diff)
+generaCortes(L, L1, L2, Diff) :- append(L1, L2, L), sum_list(L1, SL1), sum_list(L2, SL2), Diff is abs(SL1 - SL2).
+
+
+
+% ------------------------------------------------
+%
+% EJERCICIO 19
+%
+% Dado un predicado unario P(?X) sobre números naturales, definir un predicado que determine el mínimo X que
+% satisfaga P(X). Se puede suponer que hay una cantidad finita de naturales que lo satisfacen.
+%
+
+%! p(+N)
+p(N) :- N > 5, N * N >= 121, nth_integer_root_and_remainder(2, N, _, Remainder), Remainder is 0.
+
+buscarMinimoN(P, N) :- desde(0, N), call(P, N), !.
+buscarMinimoNSinCut(P, N) :- desde(0, N), call( P, N).
+
+buscarMinimoNDesde(P, Inicio, N) :- desde(Inicio, N), call(P, N), !.
+
+
+% ------------------------------------------------
+%
+% EJERCICIO 20
+%
+% Un número poderoso es un número natural m tal que por cada número primo p que divide a m, p*p también divide a m.
+% Definir el predicado próximoNumPoderoso(+X,-Y) que instancie en Y el siguiente número poderoso a partir de X.
+% Por ejemplo:
+%
+%   ?- próximoNumPoderoso(20,Y).
+%       Y = 25;
+%       false.
+%
+%   ?- próximoNumPoderoso(8,Y).
+%       Y = 9;
+%       false.
+%
+% Notar que, como en el último caso, si X ya es un número poderoso, Y no debe instanciarse con el valor de X, sino
+% con el siguiente número poderoso.
+%
+
+%! numPoderoso(+N)
+numPoderoso(N) :- divisoresPrimos(N, Primos), not((member(P, Primos), (N mod P) =:= 0, (N mod (P*P)) > 0)).
+
+%! divisoresPrimos(+N, -Primos)
+divisoresPrimos(0, []).
+divisoresPrimos(1, []).
+divisoresPrimos(N, Primos) :- N > 1, factorizarN(N, 2, FactoresPrimos), list_to_set(FactoresPrimos, Primos).
+
+%! factorizarN(+N, +Start, -Primos)
+factorizarN(N, Start, []) :- N < Start.
+factorizarN(N, Start, Primos) :-
+    N >= Start,
+    (N mod Start) > 0,
+    Next is Start + 1,
+    factorizarN(N, Next, Primos).
+factorizarN(N, Start, Primos) :-
+    N >= Start,
+    (N mod Start) =:= 0,
+    NewN is N / Start,
+    factorizarN(NewN, Start, NewPrimos),
+    append([Start], NewPrimos, Primos).
+
+
+%! próximoNumPoderoso(+X,-Y)
+próximoNumPoderoso(X, Y) :- Inicio is X + 1, buscarMinimoNDesde(numPoderoso, Inicio, Y).
+
+
+% ------------------------------------------------
+%
+% EJERCICIO 21
+%
+% Contamos con una representación de conjuntos desconocida, que permite enumerar un conjunto
+% mediante el predicado pertenece(?Elemento, +Conjunto). Dado el siguiente predicado:
+
+% -- alternativa a la definicion del ejercicio 3
+natural_2(cero).
+natural_2(suc(X)) :- natural_2(X).
+
+
+% ---------------------------
+%
+% i. Definir el predicado conjuntoDeNaturales(X) que sea verdadero cuando todos los elementos
+% de X son naturales (se asume que X es un conjunto).
+
+%! conjuntoDeNaturales(+X)
+conjuntoDeNaturales(X) :- not(( member(N, X), not(natural_2(N)) )).
+
+
+% ---------------------------
+%
+% ii. ¿Con qué instanciación de X funciona bien el predicado anterior? Justificar.
+%
+% X es un parametro que debe estar instanciado en una lista.
+% NO SE PUEDE usar el predicado para generar posibles conjuntos de naturales porque
+% la búsqueda se realiza dentro de un not y eso no permite extraer valores hacia afuera.
+%
+
+
+% ---------------------------
+%
+% iii. Indicar el error en la siguiente definición alternativa, justificando por qué
+% no funciona correctamente:
+%
+%       conjuntoDeNaturalesMalo(X) :- not( (not(natural(E)), pertenece(E,X)) ).
+%
+% Hay dos errores en esta definición:
+%
+% 1: el not interno, ver que no hay ningún natural E que pertenezca a X. Esto de por sí
+%    nunca termina (hay inifinitos naturales)
+% 2: una vez que se verifica el éxito del not interno, entonces falla la evaluación (no
+%    se llega nunca aquí)
+%
+
+
+
+
+
+
+% ------------------------------------------------
+% ------------------------------------------------
+% ------------------------------------------------
+%
+% EJERCICIOS INTEGRADORES
+%
+
+% ------------------------------------------------
+%
+% EJERCICIO 22
+%
+%
+% En este ejercicio trabajaremos con grafos no orientados. Un grafo no orientado es un conjunto de nodos y un
+% conjunto de aristas sin una dirección específica. Cada arista está representada por un par de nodos y, como
+% se puede viajar en cualquiera de los dos sentidos, la arista (a,b) y la arista (b,a) son la misma.
+%
+% No sabemos cuál es la representación interna de un grafo, pero contamos con un predicado esNodo(+G,?X) que dado
+% un grafo G dice si X es nodo de G. También tenemos otro predicado esArista(+G,?X,?Y) que dice si en G hay una
+% arista de X a Y. Notar que podemos usar esNodo para enumerar los nodos del grafo y esArista para enumerar las
+% aristas. Instanciando apropiadamente, también podemos usar esArista para obtener todas las aristas que tienen
+% a un nodo particular. Cuando esArista lista todas las aristas, cada arista se lista una sola vez en una
+% orientación arbitraria de las dos posibles, pero si se pregunta por cualquiera de las dos, responderá que sí.
+% Suponer que dos nodos son el mismo si y solo si unifican.
+%
+% Ayuda: para algunos items conviene pensar primero en cómo programar el predicado opuesto al que se pide.
+%
+
+%! esNodo(+G,?X)
+esNodo(g1, X) :- member(X, [ n10, n11, n12, n13, n14, n15, n16, n17 ]).         % caso general
+esNodo(g2, X) :- member(X, [ n20, n21, n22, n23, n24 ]).                        % camino de euler
+esNodo(g3, X) :- member(X, [ n30, n31, n32, n33, n34, n335 ]).                  % n30..n33 es completo, n34+35 separado
+esNodo(g4, X) :- member(X, [ n40, n41, n42, n43, n44 ]).                        % estrella (n42 es centro)
+esNodo(g5, X) :- member(X, [ n20, n21, n22, n23 ]).                             % K-4
+
+
+%! esArista(+G,?X,?Y)
+esArista(g1, X, Y) :- aristas(X, Y, [ (n10, n12), (n13, n10), (n11, n13), (n11, n14), (n12, n14), (n12, n15), (n13, n15), (n13, n16), (n14, n16), (n14, n17), (n15, n17), (n15, n10), (n16, n10), (n16, n11), (n17, n11), (n17, n12) ]).
+esArista(g2, X, Y) :-
+    aristas(X, Y, [ (n20, n21), (n21, n22), (n22, n23), (n23, n20), (n22, n20), (n21, n23), (n20, n24), (n24, n23) ]).
+esArista(g3, X, Y) :-
+    aristas(X, Y, [ (n30, n31), (n31, n32), (n32, n33), (n33, n30), (n31, n33), (n30, n32), (n34, n35) ]).
+esArista(g4, X, Y) :-
+    aristas(X, Y, [ (n40, n42), (n42, n41), (n42, n43), (n42, n44) ]).
+esArista(g5, X, Y) :-
+    aristas(X, Y, [ (n20, n21), (n21, n22), (n22, n23), (n23, n20), (n22, n20), (n21, n23) ]).
+
+%! aristas(?X, ?Y, +Aristas).
+aristas(X, Y, Aristas) :-
+    member( (N1, N2), Aristas),
+    arista_match(X, Y, N1, N2).
+arista_match(X, Y, N1, N2) :- X = N1, Y = N2, !.
+arista_match(X, Y, N1, N2) :- X = N2, Y = N1, !.
+
+
+% ---------------------------
+%
+% i. Implementar el predicado caminoSimple(+G,+D,+H,?L) que dice si L es un camino simple en el grafo G que empieza
+% en D y termina en H. Un camino simple lo representaremos por una lista de nodos distintos, tal que para cada par
+% de nodos consecutivos en L existe una arista en G que los conecta. Notar que el primer elemento de L debe ser D y
+% el último H. Cuando L está sin instanciar, el predicado debe ir devolviendo todos los caminos simples desde D a H
+% sin repetidos (es decir, hay que tener cuidado con los ciclos).
+
+%! caminoSimple(+G, +D, +H, ?L)
+caminoSimple(G, D, D, []) :- esNodo(G, D).
+caminoSimple(G, D, H, L) :- esNodo(G, D), esNodo(G, H), D \= H, caminoSimple(G, D, H, [], L).
+
+%
+% Sabemos que D y H son nodos del grafo.
+%
+%! caminoSimple(+G, +D, +H, +Visitados, -Camino)
+caminoSimple(_, D, D, _, [D]).
+caminoSimple(G, D, H, Visitados, Camino) :-
+    % excluyente de la terminación
+    D \= H,
+    % nos consideramos visitados
+    append(Visitados, [D], NuevoVisitados),
+    % buscamos una nueva arista, verificamos que no haya sido visitada y vamos a ese punto
+    esArista(G, D, I),
+    not(member(I, NuevoVisitados)),
+    % tratamos de completar el camino
+    caminoSimple(G, I, H, NuevoVisitados, CaminoResto),
+    % agregamos nuestro nodo al camino que obtuvimos
+    append([D], CaminoResto, Camino).
+
+
+% ---------------------------
+%
+% ii. Un camino L en un grafo G es Hamiltoniano sii L es un camino simple que contiene a todos los nodos G. Implementar
+% el predicado caminoHamiltoniano(+G,?L) que dice si L es un camino Hamiltoniano en G.
+
+%! caminoHamiltoniano(+G,?Path)
+caminoHamiltoniano(G, Path) :-
+    nonvar(Path),
+    % verificamos que todos los elementos de path sean nodos del grafo
+    not(( member(Node, Path), not(esNodo(G, Node)) )),
+    % verificamos que todos los nodos del grafo estén presentes en el camino
+    grafoTodosLosNodos(G, Path),
+    % verificamos que el camino exista en el grafo
+    prefix([D], Path),
+    append(_, [H], Path),
+    caminoSimple(G, D, H, Path).
+caminoHamiltoniano(G, Path) :-
+    var(Path),
+    % elegimos un par de nodos (y vemos que sean diferentes)
+    esNodo(G, Desde),
+    esNodo(G, Hasta),
+    Desde \= Hasta,
+    % elegimos un camino y verificamos que cubra todos los nodos
+    caminoSimple(G, Desde, Hasta, Path),
+    grafoTodosLosNodos(G, Path).
+
+
+%! grafoTodosLosNodos(+G, +Lista)
+grafoTodosLosNodos(G, Lista) :- 
+    not(( esNodo(G, Node), not(member(Node, Lista)) )).
+
+
+% ---------------------------
+%
+% iii. Implementar el predicado esConexo(+G) que dado un grafo dice si este es conexo. Un grafo G es conexo sii no
+% existe un par de nodos en G tal que no hay un camino simple que los una. Notar que con esta definición un grafo
+% de un nodo (y sin aristas) es conexo.
+
+%! esConexo(+G)
+esConexo(G) :-
+    not((
+        esNodo(G, NOri),
+        esNodo(G, NDest),
+        NOri \= NDest,
+        not(caminoSimple(G, NOri, NDest, _))
+    )).
+
+
+
+% ---------------------------
+%
+% iv. Implementar el predicado esEstrella(+G) que dado un grafo dice si es un grafo estrella. Un grafo es estrella
+% sii es conexo y hay un nodo común a todas sus aristas.
+
+%! esEstrella(+G)
+esEstrella(G) :-
+    esConexo(G),
+    posibleCentro(G, Centro),
+    not((posibleCentro(G, OtroCentro), Centro \= OtroCentro)).
+
+%! posibleCentro(G, Centro)
+posibleCentro(G, Centro) :-
+    esNodo(G, Centro),
+    not((esNodo(G, N1), N1 \= Centro, esArista(G, N1, N2), N1 \= N2, N2 \= Centro)),
+    !.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
