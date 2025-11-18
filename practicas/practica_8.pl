@@ -282,7 +282,7 @@ reverse_p8(L, R) :- append([H], T, L), reverse_p8(T, TR), append(TR, [H], R).
 
 /*
 
-PEND
+__PEND__
 
 ?-  reverse_p8([a,b,c], [c,b,a]).
     |
@@ -890,7 +890,7 @@ cucurucho(X, Y) :- leGusta(X), leGusta(Y).
 
 /*
 
-PEND
+__PEND__
 
 */
 
@@ -912,6 +912,12 @@ leGusta___(X) :- frutal(X), !, cremoso(X).
 cucurucho___(X, Y) :- leGusta___(X), !, leGusta___(Y).
 
 
+
+/*
+
+__PEND__
+
+*/
 
 
 % ------------------------------------------------
@@ -1107,7 +1113,6 @@ conjuntoDeNaturales(X) :- not(( member(N, X), not(natural_2(N)) )).
 %
 % EJERCICIO 22
 %
-%
 % En este ejercicio trabajaremos con grafos no orientados. Un grafo no orientado es un conjunto de nodos y un
 % conjunto de aristas sin una dirección específica. Cada arista está representada por un par de nodos y, como
 % se puede viajar en cualquiera de los dos sentidos, la arista (a,b) y la arista (b,a) son la misma.
@@ -1249,24 +1254,107 @@ posibleCentro(G, Centro) :-
 
 
 
+% ------------------------------------------------
+%
+% EJERCICIO 23
+%
+% Trabajaremos con árboles binarios, usando nil y bin(AI, V, AD) para representarlos en Prolog.
+%
 
 
 
+% ---------------------------
+%
+% i. Implementar un predicado arbol(-A) que genere estructuras de árbol binario, dejando los
+% valores de los nodos sin instanciar. Deben devolverse todos los árboles posibles (es decir,
+% para toda estructura posible, el predicado debe devolverla luego de un número finito de
+% pedidos). No debe devolverse dos veces el mismo árbol.
+%
+%   ?- arbol(A).
+%   A = nil ;
+%   A = bin(nil, _G2388, nil) ;
+%   A = bin(nil, _G2391, bin(nil, _G2398, nil)) ;
+%   A = bin(bin(nil, _G2398, nil), _G2391, nil) ;
+%   ...
+%
+
+%! arbol(-A)
+arbol(A) :-
+    desde(0, CantNodos),
+    generarArbol(CantNodos, A).
+
+%! generarArbol(+CantNodos, -A)
+generarArbol(0, nil).
+generarArbol(1, bin(nil, _, nil)).
+generarArbol(CantNodos, A) :-
+    CantNodos > 1,
+    CantMax is CantNodos - 1,
+    between(0, CantMax, NodosIzq),
+    NodosDer is CantMax - NodosIzq,
+    generarArbol(NodosIzq, AIzq),
+    generarArbol(NodosDer, ADer),
+    A = bin(AIzq, _, ADer).
 
 
+% ---------------------------
+%
+% ii. Implementar un predicado nodosEn(?A, +L) que es verdadero cuando A es un árbol cuyos nodos
+% pertenecen al conjunto conjunto de átomos L (representado mediante una lista no vacía, sin orden
+% relevante y sin repetidos). Puede asumirse que el árbol se recibe instanciado en su estructura,
+% pero no necesariamente en sus nodos.
+%
+%   ?- arbol(A), nodosEn(A, [ka, pow]).
+%   A = nil ;
+%   A = bin(nil, ka, nil) ;
+%   A = bin(nil, pow, nil) ;
+%   A = bin(nil, ka, bin(nil, ka, nil)) ;
+%   A = bin(nil, ka, bin(nil, pow, nil)) ;
+%   ...
+
+%! nodosEn(?A, +L)
+nodosEn(nil, _).
+nodosEn(bin(Izq, R, Der), L) :-
+    nodosEn(Izq, L),
+    nodosEn(Der, L),
+    member(R, L).
 
 
+% ---------------------------
+%
+% iii. Implementar un predicado sinRepEn(-A, +L) que genere todos los árboles cuyos nodos
+% pertenezcan al alfabeto L y usando como máximo una vez cada símbolo del mismo. En este caso,
+% no hay infinitos árboles posibles; es importante que el predicado no devuelva soluciones
+% repetidas y que no se quede buscando indefinidamente una vez terminado el espacio de soluciones.
+%
+%   ? arbolSinRepEn(A, [ka, pow]).
+%   A = nil ;
+%   A = bin(nil, ka, nil) ;
+%   A = bin(nil, pow, nil) ;
+%   A = bin(nil, ka, bin(nil, pow, nil)) ;
+%   A = bin(nil, pow, bin(nil, ka, nil)) ;
+%   ... ;
+%   No.
+%
 
+%! arbolSinRepEn(-A, +L)
+arbolSinRepEn(A, L) :-
+    length(L, MaxCantNodos),
+    between(0, MaxCantNodos, CantNodos),
+    generarArbolSinRep(CantNodos, L, _, A).
 
-
-
-
-
-
-
-
-
-
-
-
+%! generarArbolSinRep(+CantNodos, +L, -A)
+generarArbolSinRep(0, Disp, Disp, nil).
+generarArbolSinRep(1, Disp, Usados, bin(nil, R, nil)) :-
+    member(R, Disp),
+    delete(Disp, R, Usados).
+generarArbolSinRep(CantNodos, Disp, Usados, A) :-
+    CantNodos > 1,
+    CantMax is CantNodos - 1,
+    between(0, CantMax, NodosIzq),
+    NodosDer is CantMax - NodosIzq,
+    generarArbolSinRep(NodosIzq, Disp, UsadosIzq, AIzq),
+    generarArbolSinRep(NodosDer, UsadosIzq, UsadosDer, ADer),
+    member(R, UsadosDer),
+    delete(UsadosDer, R, Usados),
+    A = bin(AIzq, R, ADer).
 
