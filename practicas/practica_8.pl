@@ -887,10 +887,24 @@ cucurucho(X, Y) :- leGusta(X), leGusta(Y).
 %   ?- cucurucho(X, Y).
 %
 
-
 /*
 
-__PEND__
+ARBOL DE BUSQUEDA
+
+?-  cucurucho(X, Y).
+    +-- leGusta(X), leGusta(Y).
+        +-- frutal(X), cremoso(X), leGusta(Y).
+            +-- frutal(frutilla), cremoso(frutilla), leGusta(Y).
+                +-- frutal(frutilla), cremoso(frutilla), frutal(Y), cremoso(Y).
+                    +-- frutal(frutilla), cremoso(frutilla), frutal(frutilla), cremoso(frutilla).   PASS    { X := frutilla, Y := frutilla }
+                    +-- frutal(frutilla), cremoso(frutilla), frutal(banana), cremoso(banana).       PASS    { X := frutilla, Y := banana }
+                    +-- frutal(frutilla), cremoso(frutilla), frutal(manzana), cremoso(manzana).     FAIL
+            +-- frutal(banana), cremoso(banana), leGusta(Y).
+                +-- frutal(banana), cremoso(banana), frutal(Y), cremoso(Y).
+                    +-- frutal(banana), cremoso(banana), frutal(frutilla), cremoso(frutilla).       PASS    { X := banana, Y := frutilla }
+                    +-- frutal(banana), cremoso(banana), frutal(banana), cremoso(banana).           PASS    { X := banana, Y := banana }
+                    +-- frutal(banana), cremoso(banana), frutal(manzana), cremoso(manzana).         FAIL
+            +-- frutal(manzana), cremoso(manzana), leGusta(Y).                                      FAIL
 
 */
 
@@ -900,7 +914,14 @@ __PEND__
 % ii. Indicar qué partes del árbol se podan al colocar un ! en cada ubicación posible en las definiciones de
 % cucurucho y leGusta.
 %
-
+% Con el CUT en leGusta, va a buscar el primer sabor frutal, y luego verificar que sea cremoso. Y no buscará más combinaciones
+%
+% Con el CUT en cucurucho, va a buscar el primer sabor que le guste y dejarlo fijo, y luego buscará los posibles segundos sabores
+% (realizará todas las combinaciones posibles, con el primer sabor fijo)
+%
+% Con el CUT en leGusta y Cucurucho, buscará el primer sabor frutal que sea cremoso (CUT en leGusta), dejará ese fijo (CUT en cucurucho)
+% y buscará como segundo sabor el primer sabor frutal que sea cremoso (CUT en leGusta).
+%
 
 leGusta_(X) :- frutal(X), !, cremoso(X).
 cucurucho_(X, Y) :- leGusta_(X), leGusta_(Y).
@@ -911,13 +932,6 @@ cucurucho__(X, Y) :- leGusta__(X), !, leGusta__(Y).
 leGusta___(X) :- frutal(X), !, cremoso(X).
 cucurucho___(X, Y) :- leGusta___(X), !, leGusta___(Y).
 
-
-
-/*
-
-__PEND__
-
-*/
 
 
 % ------------------------------------------------
