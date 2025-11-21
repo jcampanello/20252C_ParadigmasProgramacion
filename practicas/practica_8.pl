@@ -277,38 +277,84 @@ last_p8(L, U) :- append(_, [U], L).
 % Mostrar el árbol de búsqueda para el ejemplo dado.
 
 %! reverse_p8(+L, ?R)
+% REV1
 reverse_p8([], []).
+% REV2
 reverse_p8(L, R) :- append([H], T, L), reverse_p8(T, TR), append(TR, [H], R).
 
 /*
 
-__PEND__
+% APP1
+append([], L, L).
+% APP2
+append([H|T], O, [H|R]) :- append(T, O, R).
 
 ?-  reverse_p8([a,b,c], [c,b,a]).
     |
-    +-- { L := [a,b,c], R := [c,b,a] }
-        append([H1], T1, [a,b,c]), reverse_p8(T1, TR1), append(TR1, [H1], [c,b,a])
+    +-- % regla REV2                                                        reverse_p8(L, R) => append([H], T, L), reverse_p8(T, TR), append(TR, [H], R)
+        { L := [a,b,c], R := [c,b,a] }
+        append([H], T, [a,b,c]), reverse_p8(T, TR), append(TR, [H], [c,b,a]).
         |
-        +-- { H1 := a, T1 := O1, L1 := [b,c] }
-            append([], O1, [b,c]), reverse_p8(T2, TR1), append(TR1, [a], [c,b,a])
+        +-- regla APP2                                                      append([H], T, [a,b,c]) = append([Ha|Ta], Oa, [Ha|Ra]) => append(Ta, Oa, Ra)
+            { Happ := H, H := a, Tapp := [], Oapp := T, Rapp := [b,c] },
+            append([], T, [b,c]), reverse_p8(T, TR), append(TR, [a], [c,b,a]).
             |
-            +-- { L21 := [b,c] }
-                reverse_p8([b,c], TR2), append(TR2, [a], [c,b,a])
+            +-- regla APP1                                                  append([], L, L) => ""
+                { T := [b,c] }
+                reverse_p8([b,c], TR), append(TR, [a], [c,b,a]).
                 |
-                +-- { TR2 := L, L := [b,c] }
-                    append([H2], T2, [b,c]), reverse_p8(T2, TR2), append(TR2, [H2], TR1), append(TR1, [a], [c,b,a])
+                +-- regla REV2                                              reverse_p8(L, R) => append([H], T, L), reverse_p8(T, TR1), append(TR1, [H], R)
+                    { L := [b,c], R := TR }
+                    append([H], T, [b,c]), reverse_p8(T, TR1), append(TR1, [H], TR), append(TR, [a], [c,b,a]).
                     |
-                    +-- { H2:= b, T2 := L23, L1 := [c] }
-                        append([], L23, [c]), reverse_p8(L23, TR2), append(TR2, [b], TR1), append(TR1, [a], [c,b,a])
+                    +-- regla APP2                                          append([H|T], O, [H|R]) => append(T, O, R)
+                        { H := b, O := T, R := [c], T := [] }
+                        append([], T, [c]), reverse_p8(T, TR1), append(TR1, [b], TR), append(TR, [a], [c,b,a]).
                         |
-                        +-- { L23 := [c] }
-                            reverse_p8([c], TR3), append(TR2, [b], TR1), append(TR1, [a], [c,b,a])
+                        +-- regla APP1                                      append([], L, L) => ""
+                            { T := [c] }
+                            reverse_p8([c], TR1), append(TR1, [b], TR), append(TR, [a], [c,b,a]).
                             |
-                            +-- { H3 := c, T3 := L23, L := [] }
-                                append([c], L23, [c]), reverse_p8(T3, TR3), append(TR3, [c], TR3), append(TR, [b], R), append(TR, [a], [c,b,a])
+                            +-- regla REV2                                  reverse_p8(L, R) => append([H], T, L), reverse_p8(T, TR), append(TR, [H], R)
+                                { L := [c], R := TR2 }
+                                append([H], T, [c]), reverse_p8(T, TR2), append(TR2, [H], TR1), append(TR1, [b], TR), append(TR, [a], [c,b,a]).
+                                |
+                                +-- regla APP2                              append([H|T], O, [H|R]) => append(T, O, R)
+                                    { H := c, O := T, R := [], T := [] }
+                                    append([], T, []), reverse_p8(T, TR2), append(TR2, [c], TR1), append(TR1, [b], TR), append(TR, [a], [c,b,a]).
+                                    |
+                                    +-- regla APP1                          append([], L, L) => ""
+                                        { T := [] }
+                                        reverse_p8([], TR2), append(TR2, [c], TR1), append(TR1, [b], TR), append(TR, [a], [c,b,a]).
+                                        |
+                                        +-- regla REV1                      reverse_p8([], []) => ""
+                                            { TR3 := [] }
+                                            append([], [c], TR1), append(TR1, [b], TR), append(TR, [a], [c,b,a]).
+                                            |
+                                            +-- regla APP1                  append([], L, L) => ""
+                                                { TR1 := [c] }
+                                                append([c], [b], TR), append(TR, [a], [c,b,a]).
+                                                |
+                                                +-- regla APP2              append([H|T], O, [H|R]) => append(T, O, R)
+                                                    { H := c, T := [], O := [b], TR := [c|R] }
+                                                    append([], [b], R), append([c|R], [a], [c,b,a]).
+                                                    |
+                                                    +-- regla APP1          append([], L, L) => ""
+                                                        { R := [b] }
+                                                        append([c|[b]], [a], [c,b,a]) = append([c,b], [a], [c,b,a]).
+                                                        |
+                                                        +-- regla APP2      append([H|T], O, [H|R]) => append(T, O, R)
+                                                            { H := c, T := [b], O := [a], R := [b,a] }
+                                                            append([b], [a], [b,a]).
+                                                            |
+                                                            +-- regla APP2  append([H|T], O, [H|R]) => append(T, O, R)
+                                                                { H := b, T := [], O := [a], R := [a] }
+                                                                append([], [a], [a]).
+                                                                |
+                                                                +-- regla APP1 append([], L, L) => ""
+                                                                    { L := [a] }
+                                                                    SUCCESS
 
-append([], L, L).
-append([H|T], O, [H|R]) :- append(T, O, L).
 */
 
 % ---------------------------
