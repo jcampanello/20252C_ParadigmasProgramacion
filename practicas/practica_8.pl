@@ -493,7 +493,12 @@ permutaciónBis(L1, L2) :- intersección(L1, L2, _).
 
 %! reparto(+L, +N, -LListas)
 reparto([], 0, []).
-reparto(L, N, LListas) :- N > 0, append(Parte, Resto, L), N1 is N-1, reparto(Resto, N1, LListasRec), append([Parte], LListasRec, LListas).
+reparto(L, N, LListas) :-
+    N > 0,
+    append(Parte, Resto, L),
+    N1 is N-1,
+    reparto(Resto, N1, LListasRec),
+    append([Parte], LListasRec, LListas).
 
 % ---------------------------
 %
@@ -503,7 +508,11 @@ reparto(L, N, LListas) :- N > 0, append(Parte, Resto, L), N1 is N-1, reparto(Res
 
 %! repartoSinVacías(+L, -LListas)
 repartoSinVacías([], []).
-repartoSinVacías(L, LListas) :- append(Parte, Resto, L), Parte \= [], repartoSinVacías(Resto, LListasRec), append([Parte], LListasRec, LListas).
+repartoSinVacías(L, LListas) :-
+    append(Parte, Resto, L),
+    Parte \= [],
+    repartoSinVacías(Resto, LListasRec),
+    append([Parte], LListasRec, LListas).
 
 
 
@@ -938,19 +947,19 @@ cucurucho(X, Y) :- leGusta(X), leGusta(Y).
 ARBOL DE BUSQUEDA
 
 ?-  cucurucho(X, Y).
-    +-- leGusta(X), leGusta(Y).
-        +-- frutal(X), cremoso(X), leGusta(Y).
-            +-- frutal(frutilla), cremoso(frutilla), leGusta(Y).
-                +-- frutal(frutilla), cremoso(frutilla), frutal(Y), cremoso(Y).
-                    +-- frutal(frutilla), cremoso(frutilla), frutal(frutilla), cremoso(frutilla).   PASS    { X := frutilla, Y := frutilla }
-                    +-- frutal(frutilla), cremoso(frutilla), frutal(banana), cremoso(banana).       PASS    { X := frutilla, Y := banana }
-                    +-- frutal(frutilla), cremoso(frutilla), frutal(manzana), cremoso(manzana).     FAIL
-            +-- frutal(banana), cremoso(banana), leGusta(Y).
-                +-- frutal(banana), cremoso(banana), frutal(Y), cremoso(Y).
-                    +-- frutal(banana), cremoso(banana), frutal(frutilla), cremoso(frutilla).       PASS    { X := banana, Y := frutilla }
-                    +-- frutal(banana), cremoso(banana), frutal(banana), cremoso(banana).           PASS    { X := banana, Y := banana }
-                    +-- frutal(banana), cremoso(banana), frutal(manzana), cremoso(manzana).         FAIL
-            +-- frutal(manzana), cremoso(manzana), leGusta(Y).                                      FAIL
+  +-- leGusta(X), leGusta(Y).
+    +-- frutal(X), cremoso(X), leGusta(Y).
+      +-- frutal(frutilla), cremoso(frutilla), leGusta(Y).
+        +-- frutal(frutilla), cremoso(frutilla), frutal(Y), cremoso(Y).
+          +-- frutal(frutilla), cremoso(frutilla), frutal(frutilla), cremoso(frutilla).   PASS { X := frutilla, Y := frutilla }
+          +-- frutal(frutilla), cremoso(frutilla), frutal(banana), cremoso(banana).       PASS { X := frutilla, Y := banana }
+          +-- frutal(frutilla), cremoso(frutilla), frutal(manzana), cremoso(manzana).     FAIL
+      +-- frutal(banana), cremoso(banana), leGusta(Y).
+        +-- frutal(banana), cremoso(banana), frutal(Y), cremoso(Y).
+          +-- frutal(banana), cremoso(banana), frutal(frutilla), cremoso(frutilla).       PASS { X := banana, Y := frutilla }
+          +-- frutal(banana), cremoso(banana), frutal(banana), cremoso(banana).           PASS { X := banana, Y := banana }
+          +-- frutal(banana), cremoso(banana), frutal(manzana), cremoso(manzana).         FAIL
+      +-- frutal(manzana), cremoso(manzana), leGusta(Y).                                  FAIL
 
 */
 
@@ -1197,7 +1206,8 @@ esNodo(g5, X) :- member(X, [ n20, n21, n22, n23 ]).                             
 
 
 %! esArista(+G,?X,?Y)
-esArista(g1, X, Y) :- aristas(X, Y, [ (n10, n12), (n13, n10), (n11, n13), (n11, n14), (n12, n14), (n12, n15), (n13, n15), (n13, n16), (n14, n16), (n14, n17), (n15, n17), (n15, n10), (n16, n10), (n16, n11), (n17, n11), (n17, n12) ]).
+esArista(g1, X, Y) :-
+    aristas(X, Y, [ (n10, n12), (n13, n10), (n11, n13), (n11, n14), (n12, n14), (n12, n15), (n13, n15), (n13, n16), (n14, n16), (n14, n17), (n15, n17), (n15, n10), (n16, n10), (n16, n11), (n17, n11), (n17, n12) ]).
 esArista(g2, X, Y) :-
     aristas(X, Y, [ (n20, n21), (n21, n22), (n22, n23), (n23, n20), (n22, n20), (n21, n23), (n20, n24), (n24, n23) ]).
 esArista(g3, X, Y) :-
