@@ -7,11 +7,6 @@
 %
 % Ejercicio 1
 %
-% IDEA: se verifica primero que la matriz tenga la cantidad de filas indicadas (F).
-% Luego se toma la primera fila de la matriz y se verifica que tenga la cantidad
-% de columnas indicadas (C).
-% Finalmente, se verifica que todas las filas de la matriz tengan la misma longitud
-% que la primera fila.
 %! matriz(+F, +C, -M)
 matriz(F, C, M) :-
 	length(M, F),
@@ -27,9 +22,6 @@ matriz(F, C, M) :-
 %
 % Ejercicio 2
 %
-% IDEA: se verifica que la lista L tenga longitud N. Luego se verifica que todos
-% los elementos de la lista unifiquen con el elemento pasado (E)
-%
 %! replicar(?E, ?N, ?L)
 replicar(E, N, L) :-
 	length(L, N),
@@ -43,19 +35,13 @@ replicar(E, N, L) :-
 %
 % Ejercicio 3
 %
-% IDEA: se identifica la cantidad de columnas de la matriz dada y se crea una matriz
-% inicial con la misma cantidad de filas vacías.
-% Luego se hace un fold de la matriz dada, donde cada fila se va separando en las
-% columnas, creando al final la matriz transpuesta.
-%
 %! transponer(+M, -MT)
 transponer(M, MT) :-
-	matriz(_, C, M),										% identificamos las cant columnas de M
-	matriz(C, 0, MT0), 										% la transpuesta tiene C filas (inicalmente vacías)
-	foldl(agregar_a_columna, M, MT0, MT). 					% plegamos la matriz inicial, esto genera la transpuesta
+	matriz(_, C, M),
+	matriz(C, 0, MT0),
+	foldl(agregar_a_columna, M, MT0, MT).
 
-% AUXILIAR - recibe una fila de la matriz M y toma cada elemento y lo agrega en la fila
-% correspondiente de la matriz transpuesta
+% AUXILIAR
 %
 %! agregar_a_columna(+FilaOriginal, +TranspuestaVacia, -MatrizTranspuesta)
 agregar_a_columna([], [], []).
@@ -87,30 +73,6 @@ zipR([R|RT], [L|LT], [r(R,L)|T]) :- zipR(RT, LT, T).
 %
 % Ejercicio 4
 %
-% IDEA: Primero se hacen algunas cuentas, para saber cual es la longitud total de la
-% línea, la longitud de las restricciones, la cantidad de celdas pintadas y con eso,
-% se calcula el máximo de espacio entre celdas pintadas.
-%
-% Utiliza un esquema de Generate and Test
-%
-% El paso Generate, invoca a dos predicados de generación:
-% 1: generarPosibles: 		se encarga de tomar las restricciones e ir armando la línea.
-% 							Para esto toma una pintada, y le prefija una cantidad de
-% 							espacios (entre 1 y máximo espacio entre celdas). Es recursiva
-% 							(genera) primero la cola, luego agrega espacio y celda actual.
-% 							Tiene dos casos base. Lista vacía (genera todos espacios) y una
-% 							sola celda (pinta dicha celda). En cada paso verifica que la
-% 							longitud generada no supere el maximo. Esto es para descartar
-% 							rápido casos que no serán viables.
-% 2: agregarEspaciosBorde: 	toma una posible Linea y si la misma no llega a la longitud
-% 							esperada, le agrega espacios a izquierda y derecha. Para esto
-% 							calcula la cantidad total de espacio a agregar y utiliza
-% 							append para separar en prefijo y postfijo y armar la línea
-% 							final.
-%
-% El paso Test, verifica que la línea posible tenga la longitud esperada y luego intenta
-% unificar con la línea que se tiene (que puede tener variables o celdas ya pintadas).
-%
 %! pintadasValidas(+R)
 pintadasValidas(r(Restric, Linea)) :-
 	length(Linea, LTotal),
@@ -124,17 +86,7 @@ pintadasValidas(r(Restric, Linea)) :-
 	same_length(Linea, Posible),
 	Posible = Linea.
 
-% AUXILIAR - primera parte del proceso de generación de posibilidades. Es recursivo (genera
-% primero la cola), le prefija espacios (entre 1 y MaxEspacio) y agrega la pintada actual.
-% Tiene dos casos base:
-% 1: lista de restricciones vacia (pinta todo espacios)
-% 2: lista de restricciones con una pintada (genera sólo esa pintada)
-%
-% IMPORTANTE: si bien no es estrictamente necesario, luego de cada paso se realiza la
-% dverificación e que la longitud generada hasta ese punto es válida. Esto permite descartar
-% casos que fallarán de forma rápida. Esto genera mucha diferencia en la corrida de tests
-% y agilizó el trabajo en el TP (genera una diferencia de decenas de minutos a decenas de
-% segundos).
+% AUXILIAR
 %
 %! generarPosibles(+Restric, +LongTotal, +MaxEspacio, -LineaPosible)
 generarPosibles([], LTotal, _, LineaPosible) :-
@@ -149,10 +101,7 @@ generarPosibles( [N | T], LTotal, MaxEspacio, LineaPosible) :-
 	length(LineaPosible, LLineaPosible),
 	LLineaPosible =< LTotal.
 
-% AUXILIAR - Toma una línea posible (que comienza y termina con celdas pintadas) y le prefija
-% entre 1 y MaxEspacio espacios. Esta predicado se debe usar en la situación en que se quiere
-% tomar un fragmento de línea pintada y agregar adelante una nueva pintada (requiere espacios
-% entre pintadas).
+% AUXILIAR
 %
 %! agregarEspacioInterno(+MaxEspacio, +Tail, +TailConEspacios)
 agregarEspacioInterno(MaxEspacio, LineaTail, LineaTailConEspacio) :-
@@ -160,11 +109,7 @@ agregarEspacioInterno(MaxEspacio, LineaTail, LineaTailConEspacio) :-
 	replicar(o, Len, Espacios),
 	append(Espacios, LineaTail, LineaTailConEspacio).
 
-% AUXILIAR - Recibe una LineaPosible y si tiene menor longitud que LTotal, le agrega
-% espacios (adelante y atrás) hasta completar. Calcula la cantidad de relleno y genera
-% una lista de espacios de dicha cantidad. Utiliza append para generar las sublistas
-% de prefijo y postfijo para la LineaPosible. Usa append3 (predicado propio) para armar
-% la línea posible final.
+% AUXILIAR
 %
 %! agregarEspaciosBorde(+LTotal, +LineaPosible, -Posible)
 agregarEspaciosBorde(LTotal, LineaPosible, Posible) :-
@@ -174,7 +119,7 @@ agregarEspaciosBorde(LTotal, LineaPosible, Posible) :-
 	append(Prefix, Postfix, Relleno),
 	append3(Prefix, LineaPosible, Postfix, Posible).
 
-% AUXILIAR - toma 3 listas y las concatena en una sola
+% AUXILIAR
 %
 %! append3(+Prefix, +Lista, +Postfix, -Resultado)
 append3(Prefix, Lista, Postfix, Resultado) :-
@@ -189,8 +134,6 @@ append3(Prefix, Lista, Postfix, Resultado) :-
 %
 % Ejercicio 5
 %
-% IDEA: intentar con las pintadas válidas de cada restriccion
-%
 %! resolverNaive(+NN)
 resolverNaive(nono(_, RS)) :-
 	maplist(pintadasValidas, RS).
@@ -204,46 +147,34 @@ resolverNaive(nono(_, RS)) :-
 %
 % Ejercicio 6
 %
-% IDEA: Lo que hacemos es calcular todas las pintadas válidas para la restriccion. Esto
-% genera una lista donde cada fila es una pintada válida, de forma que las columnas
-% de cada fila corresponden a una celda de la restriccion. Por eso calculamos la transpuesta.
-% Hecho esto, cada fila de la matriz transpuesta corresponde a una celda de la restriccion.
-% El siguiente paso es armar un "set" con los valores posibles de cada fila y verificar si
-% ese set tiene longitud 0, 1 o >2. Si tiene un único elemento, entonces la celda de la
-% restriccion siempre estará pintada con ese elemento (x u o) y se puede considerar como
-% una celda obligatoria.
-%
-% IMPORTANTE: mirar la cardinalidad del conjunto de valores que puede tomar una columna
-% nos pareció una forma más natural de decidir si la pintada es obligatoria. El caso
-% opuesto es hacer algún tipo de reducción mirando las filas e ir acumulando o mirando
-% casos y comparando valores individuales, pero lo que importa es la cardinalidad. Por
-% este motivo no vimos necesidad de utilizar el predicado combinarCelda provisto.
+% Por simplicidad, se mira la cardinalidad del conjunto de valores que puede tomar una
+% columna (si es único entonces es una pintada obligatoria). Dado que las pintadas
+% obligatorias se calculan por fila de la matriz (y todas las posibles pintadas), usamos
+% la transpuesta para separar los posibles valores POR columna.
+% Por este motivo no vimos necesidad de utilizar el predicado combinarCelda provisto.
 %
 %! pintarObligatorias(+R)
 pintarObligatorias(r(Restric, Linea)) :-
 	findall(Linea, pintadasValidas(r(Restric, Linea)), PosiblesLineas),
 	transponer(PosiblesLineas, Lineas),
-	lineasObligatorias(Lineas, Linea).
+	celdasObligatorias(Lineas, Linea).
 
-% AUXILIAR - recibe una lista de lineas (cada línea representando valores de una columna) y
-% arma una lista resultado, donde cada celda se fija a un valor (si la línea tiene el mismo
-% valor en todas las celdas), sino deja la celda sin modificar.
+% AUXILIAR
 %
-%! lineasObligatorias(+Lineas, +Linea)
-lineasObligatorias([], []).
-lineasObligatorias([HLs | TLs], [HL | TL]) :-
-	lineasObligatorias(TLs, TL),
+%! celdasObligatorias(+Lineas, +Linea)
+celdasObligatorias([], []).
+celdasObligatorias([HLs | TLs], [HL | TL]) :-
+	celdasObligatorias(TLs, TL),
 	list_to_set(HLs, Valores),
 	reducirValorObligatorio(Valores, HL).
 
-% AUXILIAR - toma una lista de valores únicos (que aparecían en las posibles pintadas). Si todos
-% son el mismo valor (la lista tiene longitud 1), entonces se fija a ese valor. Sino se deja la
-% variable sin modificar. El predicado es completo y nunca falla, solo fija valor cuando
-% corresponde.
+% AUXILIAR
+%
+% Si el conjunto tiene un único valor, entonces el valor es obligatorio.
 %
 %! reducirValorObligatorio(+Valores, +Variable)
 reducirValorObligatorio([], _).
-reducirValorObligatorio([V], HL) :- HL = V.
+reducirValorObligatorio([Valor], Valor).
 reducirValorObligatorio([_, _ | _], _).
 
 
@@ -262,9 +193,6 @@ combinarCelda(A, B, _) :- nonvar(A), nonvar(B), A \== B.
 % --------------------------------------------------------------------------------
 %
 % Ejercicio 7
-%
-% IDEA: para deducir una pasada, tratamos de identificar todas las celdas obligatorias
-% en cada fila y las pintamos
 %
 %! deducir1Pasada(+NN)
 deducir1Pasada(nono(_, RS)) :-
@@ -294,14 +222,16 @@ deducirVariasPasadasCont(NN, A, B) :- A =\= B, deducirVariasPasadas(NN).
 %
 % Ejercicio 8
 %
-% IDEA: se busca una restricción y luego se verifica que no existe otra restricción
-% que tenga menos variables libres.
-%
 %! restriccionConMenosLibres(+NN, -R)
-restriccionConMenosLibres(nono(_, RS), R) :- unaRestriccion(RS, R, FV), not((unaRestriccion(RS, _, NFV), FV > NFV)).
+restriccionConMenosLibres(nono(_, RS), R) :-
+	unaRestriccion(RS, R, FV),
+	not((unaRestriccion(RS, _, NFV), FV > NFV)).
 
 %! unaRestriccion(+RS, -R, -FV)
-unaRestriccion(RS, R, FV) :- member(R, RS), R = r(_, L), cantidadVariablesLibres(L, FV), FV > 0.
+unaRestriccion(RS, R, FV) :-
+	member(R, RS),
+	R = r(_, L),
+	cantidadVariablesLibres(L, FV), FV > 0.
 
 
 
@@ -312,11 +242,9 @@ unaRestriccion(RS, R, FV) :- member(R, RS), R = r(_, L), cantidadVariablesLibres
 %
 % Ejercicio 9
 %
-% IDEA: se realiza un ciclo en donde primero se intenta deducir varias pasadas (es decir:
-% identificar y pintar celdas que se sabe son obligatorias). Luego se realiza una "iteración"
-% eligiendo una restricción y probando las posibles líneas de la misma, para intentar
-% resolver utilizando cada línea posible. Esta iteración ocurre mientras la cantidad de
-% variables libres no sea cero.
+% Intenta resolver recursivamente, mientras queden celdas sin decidir. Para esto
+% usa la cantidad de celdas no asignadas (variables libres) e intenta mientras
+% la cantidad vaya decreciendo hasta cero (ya resuelto).
 %
 %! resolverDeduciendo(+NN)
 resolverDeduciendo(NN) :-
@@ -325,28 +253,24 @@ resolverDeduciendo(NN) :-
 	cantidadVariablesLibres(M, FV),
 	resolverDeduciendoCont(NN, FV).
 
+% AUXILIAR
+%
 %! resolverDeduciendoCont(+NN, +FV)
-resolverDeduciendoCont(_, 0). 												% no hay variables libres => solución!
+resolverDeduciendoCont(_, 0). 							% no hay variables libres => solución!
 resolverDeduciendoCont(NN, FV) :-
-	FV > 0, 																% hace disjunto el predicado anterior
-	restriccionConMenosLibres(NN, r(Restric, Linea)), 						% buscamos una restricción mínima
+	FV > 0, 											% aun no resuelto
+	restriccionConMenosLibres(NN, r(Restric, Linea)),
 	%
-	% aquí realizamos un CUT porque puede haber más de una línea/columna (con
-	% variables no instanciadas) y con la mínima cantidad de restricciones. La
-	% idea del algoritmo es pensar que cualquiera de las restricciones con
-	% cantidad mínima es equivalente, porque las otras restricciones serán
-	% deducidas de forma simple o serán tratadas más adelante. Si no se realiza
-	% el cut, luego de resolver usando la restricción elegida, se usaría otra
-	% restricción mínima en el mismo punto, generando otra solución equivalente
-	% (pero explorada por otra rama del árbol de búsqueda).
+	% se hace un CUT porque cualquiera sea la restricción mínima, si el nonograma
+	% tiene solución, por esa restricción debería llegar a la respuesta. Intentar
+	% con otras alternativas duplicaría los resultados al encontrarlos en otra
+	% rama del árbol de búsqueda.
 	%
-	!,
-	findall(Linea, pintadasValidas(r(Restric, Linea)), PosiblesLineas), 	% buscamos todas las líneas posibles
-	member(LineaPosible, PosiblesLineas), 									% elegimos las posibles, de a una
-	Linea = LineaPosible, 													% unificamos, esto puede:
-																			% - fallar y mira el proximo (via member)
-																			% - tener exito y entonces sigue deduciendo
-	resolverDeduciendo(NN). 												% volvemos a tratar de deducir varias pasadas
+	!,													
+	findall(Linea, pintadasValidas(r(Restric, Linea)), PosiblesLineas), % buscamos las pintadas validas y probamos
+																		% una por una intentado resolver
+	member(Linea, PosiblesLineas),
+	resolverDeduciendo(NN).
 
 
 % --------------------------------------------------------------------------------
@@ -356,11 +280,8 @@ resolverDeduciendoCont(NN, FV) :-
 %
 % Ejercicio 10
 %
-% IDEA: obtenemos todas las posibles soluciones (únicas) y verificamos que se haya
-% obtenido una sola solución.
-%
-% IMPORTANTE: aquí usamos bagof para obtener soluciones únicas (si hubiera repetidas
-% es un problema en otro punto y no queremos confundir repetidas con únicas).
+% IMPORTANTE: si resolverDeduciendo debido a un error retorna soluciones duplicadas,
+% bagof garantiza que se consideran soluciones únicas para decidir.
 %
 %! solucionUnica(+NN)
 solucionUnica(nono(M, R)) :-
