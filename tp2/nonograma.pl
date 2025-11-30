@@ -73,59 +73,52 @@ zipR([R|RT], [L|LT], [r(R,L)|T]) :- zipR(RT, LT, T).
 %
 % Ejercicio 4
 %
+% Calculamos el espacio con el que podemos jugar. Luego jugamos con el espacio
+% inicial (entre 0 y el espacio a jugar) y por cada restricción, generamos las
+% marcadas y el espacio que viene atrás (de 0 al disponible para jugar para la
+% última o de 1 al disponible para jugar para las intermedias).
+%
 %! pintadasValidas(+R)
 pintadasValidas(r(Restric, Linea)) :-
 	length(Linea, LTotal),
 	length(Restric, LRestric),
 	sum_list(Restric, CPintada),
-	MaxEspacio is max(LTotal - CPintada - (LRestric - 1) + 1, 0),
-	% generate
-	generarPosibles(Restric, LTotal, MaxEspacio, LineaPosible),
-	agregarEspaciosBorde(LTotal, LineaPosible, Posible),
-	% test (verificamos la longitud y la unificación chequea variables con valor y el resto)
-	same_length(Linea, Posible),
-	Posible = Linea.
+	EspacioDisponible is LTotal - CPintada - max(LRestric - 1, 0),
+	generarConEspacioInicial(Restric, EspacioDisponible, Linea).
 
 % AUXILIAR
 %
-%! generarPosibles(+Restric, +LongTotal, +MaxEspacio, -LineaPosible)
-generarPosibles([], LTotal, _, LineaPosible) :-
-	replicar(o, LTotal, LineaPosible).
-generarPosibles([N], _, _, LineaPosible) :-
-	replicar(x, N, LineaPosible).
-generarPosibles( [N | T], LTotal, MaxEspacio, LineaPosible) :-
-	generarPosibles(T, LTotal, MaxEspacio, LineaTail),
-	agregarEspacioInterno(MaxEspacio, LineaTail, LineaTailConEspacio),
-	replicar(x, N, Pintada),
-	append(Pintada, LineaTailConEspacio, LineaPosible),
-	length(LineaPosible, LLineaPosible),
-	LLineaPosible =< LTotal.
+%! generarConEspacioInicial(+Restricciones, +EspacioDisponible, -Linea)
+generarConEspacioInicial([], EspacioDisponible, Linea) :-
+	generarParte(0, EspacioDisponible, Linea).					% restricciones vacías es todo blancos
+generarConEspacioInicial(Restricciones, EspacioDisponible, Linea) :-
+	% Si la lista es vacía, entrará también por este caso pero fallará al intentar generarPosibles
+	between(0, EspacioDisponible, EspacioInicio),
+	EspacioRestante is EspacioDisponible - EspacioInicio,
+	generarPosibles(Restricciones, EspacioRestante, PintadaPosible),
+	generarParte(0, EspacioInicio, BlancasIniciales),			% solo espacios
+	append(BlancasIniciales, PintadaPosible, Linea).
 
 % AUXILIAR
 %
-%! agregarEspacioInterno(+MaxEspacio, +Tail, +TailConEspacios)
-agregarEspacioInterno(MaxEspacio, LineaTail, LineaTailConEspacio) :-
-	between(1, MaxEspacio, Len),
-	replicar(o, Len, Espacios),
-	append(Espacios, LineaTail, LineaTailConEspacio).
+%! generarPosibles(+Restriciones, +EspacioExtra, -PintadaPosible)
+generarPosibles([Restriccion], EspacioExtra, PintadaPosible) :-
+	generarParte(Restriccion, EspacioExtra, PintadaPosible).	% las marcadas y todo el espacio restante
+generarPosibles([Restriccion | RestoRestricciones], EspacioExtra, PintadaPosible) :-
+	between(0, EspacioExtra, EspacioExtraUsado),
+	EspacioExtraResto is EspacioExtra - EspacioExtraUsado,
+	CantidadEspacios is EspacioExtraUsado + 1,					% es al menos un espacio
+	generarPosibles(RestoRestricciones, EspacioExtraResto, PintadaPosibleResto),
+	generarParte(Restriccion, CantidadEspacios, Parte),
+	append(Parte, PintadaPosibleResto, PintadaPosible).
 
 % AUXILIAR
 %
-%! agregarEspaciosBorde(+LTotal, +LineaPosible, -Posible)
-agregarEspaciosBorde(LTotal, LineaPosible, Posible) :-
-	length(LineaPosible, CurLen),
-	CantRelleno is max(LTotal - CurLen, 0),
-	replicar(o, CantRelleno, Relleno),
-	append(Prefix, Postfix, Relleno),
-	append3(Prefix, LineaPosible, Postfix, Posible).
-
-% AUXILIAR
-%
-%! append3(+Prefix, +Lista, +Postfix, -Resultado)
-append3(Prefix, Lista, Postfix, Resultado) :-
-	append(Prefix, Lista, ParteIzq),
-	append(ParteIzq, Postfix, Resultado).
-
+%! generarParte(+CantidadMarcadas, +CantidadBlancas, -Parte)
+generarParte(CantidadMarcadas, CantidadBlancas, Parte) :-
+	replicar(x, CantidadMarcadas, Marcadas),
+	replicar(o, CantidadBlancas, Blancas),
+	append(Marcadas, Blancas, Parte).
 
 % --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
