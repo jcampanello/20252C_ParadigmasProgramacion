@@ -75,8 +75,8 @@ zipR([R|RT], [L|LT], [r(R,L)|T]) :- zipR(RT, LT, T).
 %
 % Calculamos el espacio con el que podemos jugar. Luego jugamos con el espacio
 % inicial (entre 0 y el espacio a jugar) y por cada restricción, generamos las
-% marcadas y el espacio que viene atrás (de 0 al disponible para jugar para la
-% última o de 1 al disponible para jugar para las intermedias).
+% marcadas y el espacio que viene atrás (entre 1 y disponible para las intermedias
+% y entre forzamos lo restante para el final).
 %
 %! pintadasValidas(+R)
 pintadasValidas(r(Restric, Linea)) :-
