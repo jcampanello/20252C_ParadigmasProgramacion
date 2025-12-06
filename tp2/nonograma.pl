@@ -1,53 +1,51 @@
 
+%
+% Usamos nombres descriptivos para variables (ej: NroFilas en lugar de F) pero
+% no modificamos los nombres en los predicados dados en la base del ejercicio.
+% El único nombre no descriptivo que mantuvimos es NN (NoNograma).
+%
 
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
+
+
 % --------------------------------------------------------------------------------
 %
 % Ejercicio 1
 %
-%! matriz(+F, +C, -M)
-matriz(F, C, M) :-
-	length(M, F),
-	nth1(1, M, FirstRow),
-	length(FirstRow, C),
-	maplist(same_length(FirstRow), M).
+%! matriz(+NroFilas, +NroColumnas, -Matriz)
+matriz(NroFilas, NroColumnas, Matriz) :-
+	length(Matriz, NroFilas),
+	nth1(1, Matriz, FirstRow),
+	length(FirstRow, NroColumnas),
+	maplist(same_length(FirstRow), Matriz).
 
 
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
 %
 % Ejercicio 2
 %
-%! replicar(?E, ?N, ?L)
-replicar(E, N, L) :-
-	length(L, N),
-	maplist(=(E), L).
+%! replicar(?Elem, ?NroElementos, ?Lista)
+replicar(Elem, NroElementos, Lista) :-
+	length(Lista, NroElementos),
+	maplist(=(Elem), Lista).
 
 
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
 %
 % Ejercicio 3
 %
-%! transponer(+M, -MT)
-transponer(M, MT) :-
-	matriz(_, C, M),
-	matriz(C, 0, MT0),
-	foldl(agregar_a_columna, M, MT0, MT).
+%! transponer(+Matriz, -Transpuesta)
+transponer(Matriz, Transpuesta) :-
+	matriz(_, NroColumnas, Matriz),
+	matriz(NroColumnas, 0, TranspuestaInicial),
+	foldl(agregar_a_columna, Matriz, TranspuestaInicial, Transpuesta).
 
 % AUXILIAR
 %
 %! agregar_a_columna(+FilaOriginal, +TranspuestaVacia, -MatrizTranspuesta)
 agregar_a_columna([], [], []).
-agregar_a_columna([HR | TR], [HM0 | TM0], [HMT | TMT]) :-
-	agregar_a_columna(TR, TM0, TMT),
-	append(HM0, [HR], HMT).
+agregar_a_columna([HeadFila | TailFila], [HeadTransInicial | TailTransInicial], [HeadTranspuesta | TailTranspuesta]) :-
+	agregar_a_columna(TailFila, TailTransInicial, TailTranspuesta),
+	append(HeadTransInicial, [HeadFila], HeadTranspuesta).
 
 
 
@@ -67,9 +65,6 @@ zipR([R|RT], [L|LT], [r(R,L)|T]) :- zipR(RT, LT, T).
 
 
 % --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
 %
 % Ejercicio 4
 %
@@ -78,13 +73,16 @@ zipR([R|RT], [L|LT], [r(R,L)|T]) :- zipR(RT, LT, T).
 % marcadas y el espacio que viene atrás (entre 1 y disponible para las intermedias
 % y entre forzamos lo restante para el final).
 %
+% El predicado auxiliar generarParte concentra toda la generación de celdas (marcadas
+% y blancas). Ambas cantidades (marcadas y blancas) pueden ser 0.
+%
 %! pintadasValidas(+R)
-pintadasValidas(r(Restric, Linea)) :-
-	length(Linea, LTotal),
-	length(Restric, LRestric),
-	sum_list(Restric, CPintada),
-	EspacioDisponible is LTotal - CPintada - max(LRestric - 1, 0),
-	generarConEspacioInicial(Restric, EspacioDisponible, Linea).
+pintadasValidas(r(Restricciones, Linea)) :-
+	length(Linea, LongTotal),
+	length(Restricciones, CantRestric),
+	sum_list(Restricciones, CantPintadas),
+	EspacioDisponible is LongTotal - CantPintadas - max(CantRestric - 1, 0),
+	generarConEspacioInicial(Restricciones, EspacioDisponible, Linea).
 
 % AUXILIAR
 %
@@ -95,8 +93,8 @@ generarConEspacioInicial(Restricciones, EspacioDisponible, Linea) :-
 	% Si la lista es vacía, entrará también por este caso pero fallará al intentar generarPosibles
 	between(0, EspacioDisponible, EspacioInicio),
 	EspacioRestante is EspacioDisponible - EspacioInicio,
+	generarParte(0, EspacioInicio, BlancasIniciales),			% primer segmento es solo espacios
 	generarPosibles(Restricciones, EspacioRestante, PintadaPosible),
-	generarParte(0, EspacioInicio, BlancasIniciales),			% solo espacios
 	append(BlancasIniciales, PintadaPosible, Linea).
 
 % AUXILIAR
@@ -108,8 +106,8 @@ generarPosibles([Restriccion | RestoRestricciones], EspacioExtra, PintadaPosible
 	between(0, EspacioExtra, EspacioExtraUsado),
 	EspacioExtraResto is EspacioExtra - EspacioExtraUsado,
 	CantidadEspacios is EspacioExtraUsado + 1,					% es al menos un espacio
-	generarPosibles(RestoRestricciones, EspacioExtraResto, PintadaPosibleResto),
 	generarParte(Restriccion, CantidadEspacios, Parte),
+	generarPosibles(RestoRestricciones, EspacioExtraResto, PintadaPosibleResto),
 	append(Parte, PintadaPosibleResto, PintadaPosible).
 
 % AUXILIAR
@@ -121,21 +119,15 @@ generarParte(CantidadMarcadas, CantidadBlancas, Parte) :-
 	append(Marcadas, Blancas, Parte).
 
 % --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
 %
 % Ejercicio 5
 %
 %! resolverNaive(+NN)
-resolverNaive(nono(_, RS)) :-
-	maplist(pintadasValidas, RS).
+resolverNaive(nono(_, Restricciones)) :-
+	maplist(pintadasValidas, Restricciones).
 
 
 
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
 %
 % Ejercicio 6
@@ -147,8 +139,8 @@ resolverNaive(nono(_, RS)) :-
 % Por este motivo no vimos necesidad de utilizar el predicado combinarCelda provisto.
 %
 %! pintarObligatorias(+R)
-pintarObligatorias(r(Restric, Linea)) :-
-	findall(Linea, pintadasValidas(r(Restric, Linea)), PosiblesLineas),
+pintarObligatorias(r(Restricciones, Linea)) :-
+	findall(Linea, pintadasValidas(r(Restricciones, Linea)), PosiblesLineas),
 	transponer(PosiblesLineas, Lineas),
 	celdasObligatorias(Lineas, Linea).
 
@@ -156,10 +148,10 @@ pintarObligatorias(r(Restric, Linea)) :-
 %
 %! celdasObligatorias(+Lineas, +Linea)
 celdasObligatorias([], []).
-celdasObligatorias([HLs | TLs], [HL | TL]) :-
-	celdasObligatorias(TLs, TL),
-	list_to_set(HLs, Valores),
-	reducirValorObligatorio(Valores, HL).
+celdasObligatorias([HeadLineas | TailLineas], [HeadObligatoria | TailObligatoria]) :-
+	celdasObligatorias(TailLineas, TailObligatoria),
+	list_to_set(HeadLineas, Valores),
+	reducirValorObligatorio(Valores, HeadObligatoria).
 
 % AUXILIAR
 %
@@ -181,15 +173,12 @@ combinarCelda(A, B, _) :- nonvar(A), nonvar(B), A \== B.
 
 
 % --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
 %
 % Ejercicio 7
 %
 %! deducir1Pasada(+NN)
-deducir1Pasada(nono(_, RS)) :-
-	maplist(pintarObligatorias, RS).
+deducir1Pasada(nono(_, Restricciones)) :-
+	maplist(pintarObligatorias, Restricciones).
 
 
 % Predicado dado
@@ -209,28 +198,27 @@ deducirVariasPasadasCont(NN, A, B) :- A =\= B, deducirVariasPasadas(NN).
 
 
 % --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
 %
 % Ejercicio 8
 %
 %! restriccionConMenosLibres(+NN, -R)
-restriccionConMenosLibres(nono(_, RS), R) :-
-	unaRestriccion(RS, R, FV),
-	not((unaRestriccion(RS, _, NFV), FV > NFV)).
+restriccionConMenosLibres(nono(_, Restricciones), Restriccion) :-
+	unaRestriccion(Restricciones, Restriccion, VariablesLibres),
+	not((unaRestriccion(Restricciones, _, VariablesLibresOtra), VariablesLibres > VariablesLibresOtra)).
 
+% AUXILIAR
+%
+% NOTA: Se usa Restriccion = r(_, Linea) porque se opera sobre Restriccion, pero la cantidad de
+% variables se obtiene sobre Linea. Técnica tomada del predicado dado deducirVariasPasadas
+%
 %! unaRestriccion(+RS, -R, -FV)
-unaRestriccion(RS, R, FV) :-
-	member(R, RS),
-	R = r(_, L),
-	cantidadVariablesLibres(L, FV), FV > 0.
+unaRestriccion(Restricciones, Restriccion, VariablesLibres) :-
+	member(Restriccion, Restricciones),
+	Restriccion = r(_, Linea),
+	cantidadVariablesLibres(Linea, VariablesLibres), VariablesLibres > 0.
 
 
 
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
 %
 % Ejercicio 9
@@ -239,20 +227,23 @@ unaRestriccion(RS, R, FV) :-
 % usa la cantidad de celdas no asignadas (variables libres) e intenta mientras
 % la cantidad vaya decreciendo hasta cero (ya resuelto).
 %
+% NOTA: Se usa NN = nono(M,_) porque se opera sobre NN, pero la cantidad de variables
+% se obtiene sobre M. Técnica tomada del predicado dado deducirVariasPasadas
+%
 %! resolverDeduciendo(+NN)
 resolverDeduciendo(NN) :-
-	NN = nono(M,_),
+	NN = nono(Matriz,_),
 	deducirVariasPasadas(NN),
-	cantidadVariablesLibres(M, FV),
-	resolverDeduciendoCont(NN, FV).
+	cantidadVariablesLibres(Matriz, VariablesLibres),
+	resolverDeduciendoCont(NN, VariablesLibres).
 
 % AUXILIAR
 %
-%! resolverDeduciendoCont(+NN, +FV)
-resolverDeduciendoCont(_, 0). 							% no hay variables libres => solución!
-resolverDeduciendoCont(NN, FV) :-
-	FV > 0, 											% aun no resuelto
-	restriccionConMenosLibres(NN, r(Restric, Linea)),
+%! resolverDeduciendoCont(+NN, +VariablesLibres)
+resolverDeduciendoCont(_, 0). 									% no hay variables libres => solución!
+resolverDeduciendoCont(NN, VariablesLibres) :-
+	VariablesLibres > 0, 										% aun no resuelto
+	restriccionConMenosLibres(NN, r(Restricicion, Linea)),
 	%
 	% se hace un CUT porque cualquiera sea la restricción mínima, si el nonograma
 	% tiene solución, por esa restricción debería llegar a la respuesta. Intentar
@@ -260,15 +251,11 @@ resolverDeduciendoCont(NN, FV) :-
 	% rama del árbol de búsqueda.
 	%
 	!,													
-	findall(Linea, pintadasValidas(r(Restric, Linea)), PosiblesLineas), % buscamos las pintadas validas y probamos
-																		% una por una intentado resolver
+	findall(Linea, pintadasValidas(r(Restricicion, Linea)), PosiblesLineas),
 	member(Linea, PosiblesLineas),
 	resolverDeduciendo(NN).
 
 
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
 % --------------------------------------------------------------------------------
 %
 % Ejercicio 10
@@ -277,18 +264,15 @@ resolverDeduciendoCont(NN, FV) :-
 % bagof garantiza que se consideran soluciones únicas para decidir.
 %
 %! solucionUnica(+NN)
-solucionUnica(nono(M, R)) :-
-	bagof(M, resolverDeduciendo(nono(M, R)), Soluciones),
+solucionUnica(nono(Matriz, Restricciones)) :-
+	bagof(Matriz, resolverDeduciendo(nono(Matriz, Restricciones)), Soluciones),
 	length(Soluciones, 1).
 
 
 
 % --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
 %
-% Ejercicio 11 - INICIO
+% Ejercicio 11 - INICIO - NO VA EN LA ENTREGA, SOLO EL OUTPUT
 %
 % intento de automatizar el análisis
 %
@@ -452,7 +436,6 @@ stringJustified(S, Size, JustS) :-
 % Ejercicio 11 - FIN
 %
 % --------------------------------------------------------------------------------
-% --------------------------------------------------------------------------------
 
 
 
@@ -488,7 +471,6 @@ nn(101, NN) :- armarNono([[2],[4,1],[1,1],[2,1,2],[9],[7,1],[9],[6,2],[4,2],[5]]
 % EJEMPLOS DE NONOGRAMS.ORG
 nn(200, NN) :- armarNono([[1],[2],[3],[1,3],[3,1],[2,5],[1,2,1],[1,1,7],[2,2,1],[2,1,8],[1,1,2,1],[1,1,1,9],[2,1,2,1],[17],[1],[20],[1,1,1,1,1,1,1],[2,2,2,2,2,3],[3,2],[12]],[[1],[2],[1,1,1],[1,1,2],[3,2,1],[2,2,1,3],[3,1,1,1,1,1],[2,1,1,2,2,1],[3,1,1,1,1,1,1,1],[2,1,1,1,1,2,1,1,1],[17,1],[2,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],[2,1,1,1,1,2,1],[1,1,1,1,1,1,1,1],[2,1,1,1,1,1,1],[3,1,1,2,2],[3,1,1,2],[3,1,1],[3]],NN).
 
-% EJEMPLO DE DISCORD
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                              %
