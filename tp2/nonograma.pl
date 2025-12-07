@@ -14,9 +14,9 @@
 %! matriz(+NroFilas, +NroColumnas, -Matriz)
 matriz(NroFilas, NroColumnas, Matriz) :-
 	length(Matriz, NroFilas),
-	nth1(1, Matriz, FirstRow),
-	length(FirstRow, NroColumnas),
-	maplist(same_length(FirstRow), Matriz).
+	nth1(1, Matriz, PrimeraFila),
+	length(PrimeraFila, NroColumnas),
+	maplist(same_length(PrimeraFila), Matriz).
 
 
 % --------------------------------------------------------------------------------
@@ -36,16 +36,16 @@ replicar(Elem, NroElementos, Lista) :-
 %! transponer(+Matriz, -Transpuesta)
 transponer(Matriz, Transpuesta) :-
 	matriz(_, NroColumnas, Matriz),
-	matriz(NroColumnas, 0, TranspuestaInicial),
-	foldl(agregar_a_columna, Matriz, TranspuestaInicial, Transpuesta).
+	matriz(NroColumnas, 0, TranspuestaVacia),
+	foldl(agregar_a_columna, Matriz, TranspuestaVacia, Transpuesta).
 
 % AUXILIAR
 %
 %! agregar_a_columna(+FilaOriginal, +TranspuestaVacia, -MatrizTranspuesta)
 agregar_a_columna([], [], []).
-agregar_a_columna([HeadFila | TailFila], [HeadTransInicial | TailTransInicial], [HeadTranspuesta | TailTranspuesta]) :-
-	agregar_a_columna(TailFila, TailTransInicial, TailTranspuesta),
-	append(HeadTransInicial, [HeadFila], HeadTranspuesta).
+agregar_a_columna([HeadFila | TailFila], [HeadTranspVacia | TailTranspVacia], [HeadTranspuesta | TailTranspuesta]) :-
+	agregar_a_columna(TailFila, TailTranspVacia, TailTranspuesta),
+	append(HeadTranspVacia, [HeadFila], HeadTranspuesta).
 
 
 
@@ -76,7 +76,7 @@ zipR([R|RT], [L|LT], [r(R,L)|T]) :- zipR(RT, LT, T).
 % El predicado auxiliar generarParte concentra toda la generación de celdas (marcadas
 % y blancas). Ambas cantidades (marcadas y blancas) pueden ser 0.
 %
-%! pintadasValidas(+R)
+%! pintadasValidas(+Restricciones)
 pintadasValidas(r(Restricciones, Linea)) :-
 	length(Linea, LongTotal),
 	length(Restricciones, CantRestric),
@@ -93,8 +93,8 @@ generarConEspacioInicial(Restricciones, EspacioDisponible, Linea) :-
 	% Si la lista es vacía, entrará también por este caso pero fallará al intentar generarPosibles
 	between(0, EspacioDisponible, EspacioInicio),
 	EspacioRestante is EspacioDisponible - EspacioInicio,
-	generarParte(0, EspacioInicio, BlancasIniciales),			% primer segmento es solo espacios
 	generarPosibles(Restricciones, EspacioRestante, PintadaPosible),
+	generarParte(0, EspacioInicio, BlancasIniciales),			% primer segmento es solo espacios
 	append(BlancasIniciales, PintadaPosible, Linea).
 
 % AUXILIAR
@@ -106,8 +106,8 @@ generarPosibles([Restriccion | RestoRestricciones], EspacioExtra, PintadaPosible
 	between(0, EspacioExtra, EspacioExtraUsado),
 	EspacioExtraResto is EspacioExtra - EspacioExtraUsado,
 	CantidadEspacios is EspacioExtraUsado + 1,					% es al menos un espacio
-	generarParte(Restriccion, CantidadEspacios, Parte),
 	generarPosibles(RestoRestricciones, EspacioExtraResto, PintadaPosibleResto),
+	generarParte(Restriccion, CantidadEspacios, Parte),
 	append(Parte, PintadaPosibleResto, PintadaPosible).
 
 % AUXILIAR
@@ -201,7 +201,7 @@ deducirVariasPasadasCont(NN, A, B) :- A =\= B, deducirVariasPasadas(NN).
 %
 % Ejercicio 8
 %
-%! restriccionConMenosLibres(+NN, -R)
+%! restriccionConMenosLibres(+NN, -Restriccion)
 restriccionConMenosLibres(nono(_, Restricciones), Restriccion) :-
 	unaRestriccion(Restricciones, Restriccion, VariablesLibres),
 	not((unaRestriccion(Restricciones, _, VariablesLibresOtra), VariablesLibres > VariablesLibresOtra)).
@@ -211,11 +211,12 @@ restriccionConMenosLibres(nono(_, Restricciones), Restriccion) :-
 % NOTA: Se usa Restriccion = r(_, Linea) porque se opera sobre Restriccion, pero la cantidad de
 % variables se obtiene sobre Linea. Técnica tomada del predicado dado deducirVariasPasadas
 %
-%! unaRestriccion(+RS, -R, -FV)
+%! unaRestriccion(+Restricciones, -Restriccion, -VariablesLibres)
 unaRestriccion(Restricciones, Restriccion, VariablesLibres) :-
 	member(Restriccion, Restricciones),
 	Restriccion = r(_, Linea),
-	cantidadVariablesLibres(Linea, VariablesLibres), VariablesLibres > 0.
+	cantidadVariablesLibres(Linea, VariablesLibres),
+	VariablesLibres > 0.
 
 
 
@@ -232,7 +233,7 @@ unaRestriccion(Restricciones, Restriccion, VariablesLibres) :-
 %
 %! resolverDeduciendo(+NN)
 resolverDeduciendo(NN) :-
-	NN = nono(Matriz,_),
+	NN = nono(Matriz, _),
 	deducirVariasPasadas(NN),
 	cantidadVariablesLibres(Matriz, VariablesLibres),
 	resolverDeduciendoCont(NN, VariablesLibres).
